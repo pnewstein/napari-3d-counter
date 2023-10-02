@@ -1,0 +1,48 @@
+name: napari-3d-counter
+display_name: 3D Counter
+contributions:
+  commands:
+    - id: napari-3d-counter.get_reader
+      python_name: napari_3d_counter._reader:napari_get_reader
+      title: Open data with 3D Counter
+    - id: napari-3d-counter.write_multiple
+      python_name: napari_3d_counter._writer:write_multiple
+      title: Save multi-layer data with 3D Counter
+    - id: napari-3d-counter.write_single_image
+      python_name: napari_3d_counter._writer:write_single_image
+      title: Save image data with 3D Counter
+    - id: napari-3d-counter.make_sample_data
+      python_name: napari_3d_counter._sample_data:make_sample_data
+      title: Load sample data from 3D Counter
+    - id: napari-3d-counter.make_qwidget
+      python_name: napari_3d_counter._widget:ExampleQWidget
+      title: Make example QWidget
+    - id: napari-3d-counter.make_magic_widget
+      python_name: napari_3d_counter._widget:example_magic_widget
+      title: Make example magic widget
+    - id: napari-3d-counter.make_func_widget
+      python_name: napari_3d_counter._widget:example_function_widget
+      title: Make example function widget
+  readers:
+    - command: napari-3d-counter.get_reader
+      accepts_directories: false
+      filename_patterns: ['*.npy']
+  writers:
+    - command: napari-3d-counter.write_multiple
+      layer_types: ['image*','labels*']
+      filename_extensions: []
+    - command: napari-3d-counter.write_single_image
+      layer_types: ['image']
+      filename_extensions: ['.npy']
+  sample_data:
+    - command: napari-3d-counter.make_sample_data
+      display_name: 3D Counter
+      key: unique_id.1
+  widgets:
+    - command: napari-3d-counter.make_qwidget
+      display_name: Example QWidget
+    - command: napari-3d-counter.make_magic_widget
+      display_name: Example Magic Widget
+    - command: napari-3d-counter.make_func_widget
+      autogenerate: true
+      display_name: Example Function Widget
