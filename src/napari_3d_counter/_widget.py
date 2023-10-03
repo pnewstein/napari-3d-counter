@@ -52,6 +52,7 @@ class Count3D(QWidget):
 
         # set up state_list specific code
         self.point_layers: Dict[int, napari.layers.points.Points] = {}
+        self.pointer_states: List[PointerState] = POINTER_STATES
         buttons: list[QPushButton] = []
         for state in POINTER_STATES:
             btn = QPushButton(f"{state.name} ({state.keybind})")
@@ -128,3 +129,4 @@ def reconstruct_selected(
     """
     name = point_layer.name
     viewer.add_image(name=f"{name} reconstruction")
+    raise NotImplementedError()

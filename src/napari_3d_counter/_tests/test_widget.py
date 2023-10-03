@@ -38,7 +38,7 @@ def test_add_point(make_napari_viewer):
     my_widget._new_point_function(event)
     event.value = [np.array([2, 2, 2])]
     my_widget._new_point_function(event)
-    assert my_widget.point_layers[1].data.shape == (2, 3)
+    assert my_widget.point_layers[my_widget.pointer_states[0].state].data.shape == (2, 3)
 
 
 def test_undo(make_napari_viewer):
@@ -52,8 +52,26 @@ def test_undo(make_napari_viewer):
     event.value = [np.array([1, 1, 1])]
     my_widget._new_point_function(event)
     my_widget._undo()
-    assert len(my_widget.point_layers[1].data) == 0
+    assert len(my_widget.point_layers[my_widget.pointer_states[0].state].data) == 0
 
+def test_undo_across_states(make_napari_viewer):
+    # make viewer and add an image layer using our fixture
+    viewer = make_napari_viewer()
+    viewer.add_image(np.random.random((100, 100, 100)))
+
+    # create our widget, passing in the viewer
+    my_widget = Count3D(viewer)
+    event = Event()
+    event.value = [np.array([1, 1, 1])]
+    my_widget._new_point_function(event)
+    event.value = [np.array([2, 2, 2])]
+    my_widget._new_point_function(event)
+    my_widget._change_state_to(my_widget.pointer_states[1])()
+    my_widget._new_point_function(event)
+    event.value = [np.array([2, 2, 2])]
+    my_widget._undo() # other state
+    my_widget._undo() # current state state
+    assert len(my_widget.point_layers[my_widget.pointer_states[0].state].data) == 1
 
 # def test_example_magic_widget(make_napari_viewer, capsys):
 # viewer = make_napari_viewer()
