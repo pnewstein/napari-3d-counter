@@ -29,7 +29,7 @@ class PointerState:
 
 
 POINTER_STATES = [
-    PointerState("q", "1", 1, "#FFFFFF"),
+    PointerState("q", "1", 1, "g"),
     PointerState("w", "2", 2, "r"),
     PointerState("e", "3", 3, "c"),
     PointerState("r", "4", 4, "m"),
@@ -93,7 +93,7 @@ class ExampleQWidget(QWidget):
             current_point_layer.add(coords=pointer_coords)
             current_point_layer.remove_selected()
 
-
+        self._new_point_function = new_pointer_point
         self.pointer = self.viewer.add_points(ndim=3, name="Selector")
         self.pointer.mode = "add"
         self.pointer.events.data.connect(new_pointer_point)
