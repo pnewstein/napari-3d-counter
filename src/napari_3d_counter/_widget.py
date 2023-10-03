@@ -1,19 +1,13 @@
 """
-This module is an example of a barebones QWidget plugin for napari
-
-It implements the Widget specification.
-see: https://napari.org/stable/plugins/guides.html?#widgets
-
-Replace code below according to your needs.
+implements the counting interface and the reconstruction plugin
 """
-from typing import TYPE_CHECKING, Callable, Dict, List
+
+from typing import Callable, Dict, List
 from dataclasses import dataclass
 
-from magicgui import magic_factory
 from qtpy.QtWidgets import QVBoxLayout, QPushButton, QWidget, QLabel
 
 import napari
-import numpy as np
 from napari.utils.events import Event
 
 
@@ -22,6 +16,7 @@ class PointerState:
     """
     Represents a counter type
     """
+
     keybind: str
     name: str
     state: int
@@ -36,11 +31,11 @@ POINTER_STATES = [
 ]
 
 
-class ExampleQWidget(QWidget):
-    # your QWidget.__init__ can optionally request the napari viewer instance
-    # in one of two ways:
-    # 1. use a parameter called `napari_viewer`, as done here
-    # 2. use a type annotation of 'napari.viewer.Viewer' for any parameter
+class Count3D(QWidget):
+    """
+    Main interface for counting cells
+    """
+
     def __init__(self, napari_viewer: "napari.viewer.Viewer"):
         super().__init__()
         self.viewer = napari_viewer
@@ -99,15 +94,15 @@ class ExampleQWidget(QWidget):
         self.pointer.events.data.connect(new_pointer_point)
         undo_button = QPushButton("undo (u)")
         undo_button.clicked.connect(self._undo)
-        self.viewer.bind_key(key="u", func= self._undo)
+        self.viewer.bind_key(key="u", func=self._undo)
         self.layout().addWidget(undo_button)
-
 
     def _change_state_to(self, state: PointerState) -> Callable[[], None]:
         def out(opt=None):
             _ = opt
             self.pointer_type_state = state
             self.pointer_type_state_label.setText(state.name)
+
         return out
 
     def _undo(self, opt=None):
@@ -119,8 +114,17 @@ class ExampleQWidget(QWidget):
         self.point_layers[state].data = self.point_layers[state].data[:-1]
         self.out_of_slice_points.data = self.out_of_slice_points.data[:-1]
 
+
 # Uses the `autogenerate: true` flag in the plugin manifest
 # to indicate it should be wrapped as a magicgui to autogenerate
 # a widget.
-def example_function_widget(img_layer: "napari.layers.Image"):
-    print(f"you have selected {img_layer}")
+def reconstruct_selected(
+    labels_layer: napari.layers.labels.Labels,
+    point_layer: napari.layers.points.Points,
+    viewer: napari.viewer.Viewer,
+):
+    """
+    Reconstructs the layers in an image
+    """
+    name = point_layer.name
+    viewer.add_image(name=f"{name} reconstruction")
