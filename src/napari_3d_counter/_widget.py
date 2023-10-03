@@ -34,6 +34,9 @@ class CellTypeGuiAndData:
     layer: napari.layers.Points
 
     def update_button_text(self):
+        """
+        Updates the button with current name, and nubmer of cells
+        """
         # update the button
         button_text = (
             f"[{self.layer.data.shape[0]}] {self.layer.name}"
@@ -58,31 +61,34 @@ class Count3D(QWidget):  # pylint: disable=R0902
     def __init__(self, napari_viewer: "napari.viewer.Viewer"):
         super().__init__()
         self.viewer = napari_viewer
-        self.pointer_type_state = POINTER_STATES[0]
-        self.setLayout(QVBoxLayout())
-        self.pointer_type_state_label = QLabel()
-        self._change_state_to(self.pointer_type_state)()
-        self.layout().addWidget(self.pointer_type_state_label)
         self.undo_stack: List[int] = []
         # add out of slice markers
         self.out_of_slice_points = self.viewer.add_points(
             ndim=2, size=2, name="out of slice"
         )
-        # set up state_list specific code
+        # set up cell type points layers
         self.cell_type_gui_and_data = {
             state.state: self.init_celltype_gui_and_data(state)
             for state in POINTER_STATES
         }
+        # initalize the pointer points
         self.pointer = self.viewer.add_points(ndim=3, name="Selector")
         self.pointer.mode = "add"
         self.pointer.events.data.connect(self.new_pointer_point)
-        # add the buttons to the gui
-        for cell_type_gui_and_data in self.cell_type_gui_and_data.values():
-            self.layout().addWidget(cell_type_gui_and_data.button)
+        # init qt gui
+        self.setLayout(QVBoxLayout())
+        self.pointer_type_state_label = QLabel()
+        self.layout().addWidget(self.pointer_type_state_label)
+        for cell_type in self.cell_type_gui_and_data.values():
+            self.layout().addWidget(cell_type.button)
+        # handle undo button
         undo_button = QPushButton("undo (u)")
         undo_button.clicked.connect(self._undo)
         self.viewer.bind_key(key="u", func=self._undo)
         self.layout().addWidget(undo_button)
+        # initialize state to the first default
+        self.pointer_type_state = POINTER_STATES[0]
+        self._change_state_to(self.pointer_type_state)()
 
     def new_pointer_point(self, event: Event):
         """
