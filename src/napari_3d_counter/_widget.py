@@ -2,13 +2,13 @@
 implements the counting interface and the reconstruction plugin
 """
 
-from typing import Callable, Dict, List
+from typing import Callable, List, Optional
 from dataclasses import dataclass
 
 from qtpy.QtWidgets import QVBoxLayout, QPushButton, QWidget, QLabel
-
 import napari
 from napari.utils.events import Event
+import numpy as np
 
 
 @dataclass(frozen=True)
@@ -23,15 +23,34 @@ class PointerState:
     color: str
 
 
+@dataclass
+class CellTypeGuiAndData:
+    """
+    Represents the cell type GUI and data
+    """
+
+    pointer_state: PointerState
+    button: QPushButton
+    layer: napari.layers.Points
+
+    def update_button_text(self):
+        # update the button
+        button_text = (
+            f"[{self.layer.data.shape[0]}] {self.layer.name}"
+            f"( {self.pointer_state.keybind})"
+        )
+        self.button.setText(button_text)
+
+
 POINTER_STATES = [
-    PointerState("q", "1", 1, "g"),
-    PointerState("w", "2", 2, "r"),
-    PointerState("e", "3", 3, "c"),
-    PointerState("r", "4", 4, "m"),
+    PointerState("q", "Celltype 1", 1, "g"),
+    PointerState("w", "Celltype 2", 2, "r"),
+    PointerState("e", "Celltype 3", 3, "c"),
+    PointerState("r", "Celltype 4", 4, "m"),
 ]
 
 
-class Count3D(QWidget):
+class Count3D(QWidget):  # pylint: disable=R0902
     """
     Main interface for counting cells
     """
@@ -49,61 +68,78 @@ class Count3D(QWidget):
         self.out_of_slice_points = self.viewer.add_points(
             ndim=2, size=2, name="out of slice"
         )
-
         # set up state_list specific code
-        self.point_layers: Dict[int, napari.layers.points.Points] = {}
-        self.pointer_states: List[PointerState] = POINTER_STATES
-        buttons: list[QPushButton] = []
-        for state in POINTER_STATES:
-            btn = QPushButton(f"{state.name} ({state.keybind})")
-            change_state_fun = self._change_state_to(state)
-            btn.clicked.connect(change_state_fun)
-            self.layout().addWidget(btn)
-            buttons.append(btn)
-            point_layer = self.viewer.add_points(
-                ndim=3,
-                name=state.name,
-                edge_color=state.color,
-                face_color="#00000000",
-                out_of_slice_display=True,
-            )
-            self.point_layers[state.state] = point_layer
-            self.viewer.bind_key(
-                key=state.keybind, func=change_state_fun, overwrite=True
-            )
-
-        def new_pointer_point(event: Event):
-            """
-            Handel a new point being added to the pointer
-            """
-            pointer_coords = event.value
-            self.pointer.data = []
-            current_point_layer = self.point_layers[
-                self.pointer_type_state.state
-            ]
-            coords_2d = pointer_coords[0][1:]
-            current_point_layer.add(coords=pointer_coords)
-            self.out_of_slice_points.add(coords=coords_2d)
-            self.undo_stack.append(self.pointer_type_state.state)
-            # hack to unselect last added point
-            current_point_layer.add(coords=pointer_coords)
-            current_point_layer.remove_selected()
-
-        self._new_point_function = new_pointer_point
+        self.cell_type_gui_and_data = {
+            state.state: self.init_celltype_gui_and_data(state)
+            for state in POINTER_STATES
+        }
         self.pointer = self.viewer.add_points(ndim=3, name="Selector")
         self.pointer.mode = "add"
-        self.pointer.events.data.connect(new_pointer_point)
+        self.pointer.events.data.connect(self.new_pointer_point)
+        # add the buttons to the gui
+        for cell_type_gui_and_data in self.cell_type_gui_and_data.values():
+            self.layout().addWidget(cell_type_gui_and_data.button)
         undo_button = QPushButton("undo (u)")
         undo_button.clicked.connect(self._undo)
         self.viewer.bind_key(key="u", func=self._undo)
         self.layout().addWidget(undo_button)
 
+    def new_pointer_point(self, event: Event):
+        """
+        Handle a new point being added to the pointer
+        """
+        pointer_coords = event.value
+        self.pointer.data = []
+        current_cell_type = self.cell_type_gui_and_data[
+            self.pointer_type_state.state
+        ]
+        current_point_layer = current_cell_type.layer
+        coords_2d = pointer_coords[0][1:]
+        current_point_layer.add(coords=pointer_coords)
+        self.out_of_slice_points.add(coords=coords_2d)
+        # update undo stack
+        self.undo_stack.append(self.pointer_type_state.state)
+        # update the button
+        current_cell_type.update_button_text()
+        # hack to unselect last added point
+        current_point_layer.add(coords=pointer_coords)
+        current_point_layer.remove_selected()
+
+    def init_celltype_gui_and_data(
+        self, pointer_state: PointerState, data: Optional[np.ndarray] = None
+    ) -> CellTypeGuiAndData:
+        """
+        Inits a celltype GUI and data by adding a layer to the viewer, and
+        setting the name of the button, also binds the key
+        """
+        point_layer = self.viewer.add_points(
+            data=data,
+            ndim=3,
+            name=pointer_state.name,
+            edge_color=pointer_state.color,
+            face_color="#00000000",
+            out_of_slice_display=True,
+        )
+        change_state_fun = self._change_state_to(pointer_state)
+        self.viewer.bind_key(
+            key=pointer_state.keybind, func=change_state_fun, overwrite=True
+        )
+        btn = QPushButton(
+            f"[{point_layer.data.shape[0]}] {pointer_state.name} ({pointer_state.keybind})"
+        )
+        btn.clicked.connect(change_state_fun)
+        return CellTypeGuiAndData(
+            pointer_state=pointer_state, button=btn, layer=point_layer
+        )
+
     def _change_state_to(self, state: PointerState) -> Callable[[], None]:
+        """
+        Changes the state
+        """
         def out(opt=None):
             _ = opt
             self.pointer_type_state = state
             self.pointer_type_state_label.setText(state.name)
-
         return out
 
     def _undo(self, opt=None):
@@ -111,9 +147,16 @@ class Count3D(QWidget):
         undo the last writen thing
         """
         _ = opt
+        if not self.undo_stack:
+            print("No previous changes")
+            return
         state = self.undo_stack.pop()
-        self.point_layers[state].data = self.point_layers[state].data[:-1]
+        cell_type = self.cell_type_gui_and_data[state]
+        point_layer = cell_type.layer
+        point_layer.data = point_layer.data[:-1]
         self.out_of_slice_points.data = self.out_of_slice_points.data[:-1]
+        # update button
+        cell_type.update_button_text()
 
 
 # Uses the `autogenerate: true` flag in the plugin manifest
