@@ -11,16 +11,7 @@ from napari.utils.events import Event
 import numpy as np
 
 
-@dataclass(frozen=True)
-class PointerState:
-    """
-    Represents a counter type
-    """
-
-    keybind: str
-    name: str
-    state: int
-    color: str
+from .celltype_config import CellTypeConfig, PointerState, process_cell_type_config
 
 
 @dataclass
@@ -58,8 +49,12 @@ class Count3D(QWidget):  # pylint: disable=R0902
     Main interface for counting cells
     """
 
-    def __init__(self, napari_viewer: "napari.viewer.Viewer"):
+    def __init__(self, napari_viewer: "napari.viewer.Viewer", cell_type_config: Optional[List[CellTypeConfig]]=None):
         super().__init__()
+        if cell_type_config is None:
+            pointer_states = POINTER_STATES
+        else:
+            pointer_states = process_cell_type_config(cell_type_config)
         self.viewer = napari_viewer
         self.undo_stack: List[int] = []
         # add out of slice markers
@@ -69,7 +64,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         # set up cell type points layers
         self.cell_type_gui_and_data = {
             state.state: self.init_celltype_gui_and_data(state)
-            for state in POINTER_STATES
+            for state in pointer_states
         }
         # initalize the pointer points
         self.pointer = self.viewer.add_points(ndim=3, name="Selector")
@@ -87,7 +82,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         self.viewer.bind_key(key="u", func=self._undo)
         self.layout().addWidget(undo_button)
         # initialize state to the first default
-        self.pointer_type_state = POINTER_STATES[0]
+        self.pointer_type_state = pointer_states[0]
         self._change_state_to(self.pointer_type_state)()
 
     def new_pointer_point(self, event: Event):

@@ -23,16 +23,48 @@ https://napari.org/stable/plugins/index.html
 
 ## Installation
 
-You can install `napari-3d-counter` via [pip]:
+You cannot install `napari-3d-counter` via [pip]:
 
     pip install napari-3d-counter
 
+
+Doesn't work yet
 
 
 To install latest development version :
 
     pip install git+https://github.com/pnewstein/napari-3d-counter.git
 
+
+## Usage
+
+Both Count3D and reconstruct selected can be found in the plugin menu.
+
+To run Count3D with custom configuration, paste the following code into your napari ipython console
+
+```python
+from napari_3d_counter import Count3D, CellTypeConfig
+
+cell_type_config = [
+    # The first celltype is called "cq+eve+" and should be green
+    CellTypeConfig(
+        name="cq+eve+",
+        color="g"
+    ),
+    # The first celltype is called "cq+eve-" and should be cyan
+    CellTypeConfig(
+        name="cq+eve-",
+        color="c"
+    ),
+    # The first celltype is called "cq-eve+" and should be red
+    CellTypeConfig(
+        name="cq-eve+",
+        color="r"
+    ),
+]
+# Launch the plugin with configuration
+viewer.window.add_dock_widget(Count3D(viewer, cell_type_config=cell_type_config))
+```
 
 ## Contributing
 

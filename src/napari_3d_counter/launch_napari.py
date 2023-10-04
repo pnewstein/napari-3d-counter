@@ -1,6 +1,21 @@
 import napari
-import napari_3d_counter
-
 viewer = napari.viewer.Viewer()
-viewer.window.add_dock_widget(napari_3d_counter.Count3D(viewer))
+
+from napari_3d_counter import Count3D, CellTypeConfig
+
+cell_type_config = [
+    CellTypeConfig(
+        name="cq+eve+",
+        color="g"
+    ),
+    CellTypeConfig(
+        name="cq+eve-",
+        color="c"
+    ),
+    CellTypeConfig(
+        name="cq-eve+",
+        color="r"
+    ),
+]
+viewer.window.add_dock_widget(Count3D(viewer, cell_type_config=cell_type_config))
 # viewer.add_image(img, channel_axis=1)
