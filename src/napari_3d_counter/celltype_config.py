@@ -45,7 +45,7 @@ class CellTypeConfig:
     keybind:  Optional[str] = None
     "the keyboard binding to switch to this celltype"
 
-def fill_in_defaults(requests: List[Optional[str]], defaults: list[str]) -> list[str]:
+def fill_in_defaults(requests: List[Optional[str]], defaults: List[str]) -> List[str]:
     """
     Fills in defaults from a list by looking up a unique defalt to use
     """
@@ -55,7 +55,7 @@ def fill_in_defaults(requests: List[Optional[str]], defaults: list[str]) -> list
     # ensure that we will never run out of defauts
     default_list = default_list + ([default_list[-1]] * len(requests))
     # fill in Nones with a next unique default
-    out: list[str] = []
+    out: List[str] = []
     for request in requests:
         if request is None:
             out.append(default_list.pop(0))
