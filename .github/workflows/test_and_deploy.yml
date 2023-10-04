@@ -62,6 +62,9 @@ jobs:
 
       - name: Coverage
         uses: codecov/codecov-action@v3
+        env:
+            CODECOV_TOKEN: ${{ secrets.CODECOV }}
+
 
   deploy:
     # this will run when you have tagged a commit, starting with "v*"
