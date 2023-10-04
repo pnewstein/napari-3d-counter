@@ -96,7 +96,11 @@ def test_name_counter(make_napari_viewer):
     my_widget._undo()
     assert default_celltype.button.text()[1] == "1"
 
-
+def test_name_counter(make_napari_viewer):
+    viewer = make_napari_viewer()
+    my_widget = Count3D(viewer)
+    my_widget.update_out_of_slice()
+    assert my_widget.out_of_slice_points.data.shape == (0, 2)
 
 # def test_example_magic_widget(make_napari_viewer, capsys):
 # viewer = make_napari_viewer()

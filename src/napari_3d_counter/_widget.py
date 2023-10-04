@@ -57,6 +57,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
             pointer_states = process_cell_type_config(cell_type_config)
         self.viewer = napari_viewer
         self.undo_stack: List[int] = []
+        self.currently_adding_point = False
         # add out of slice markers
         self.out_of_slice_points = self.viewer.add_points(
             ndim=2, size=2, name="out of slice"
@@ -85,26 +86,57 @@ class Count3D(QWidget):  # pylint: disable=R0902
         self.pointer_type_state = pointer_states[0]
         self._change_state_to(self.pointer_type_state)()
 
+    def update_out_of_slice(self):
+        """
+        Adds points from all of self.cell_type_gui_and_data 
+        to self.out_of_slice_points
+        """
+        datas = [cell_type.layer.data[:, 1:] for cell_type in self.cell_type_gui_and_data.values()]
+        data = np.vstack(datas)
+        _, ndims = data.shape
+        assert ndims == 2
+        self.out_of_slice_points.data = data
+
+
+    def handle_data_changed(self, event: Event):
+        """
+        Handle adding point specific to the layer
+        """
+        if self.currently_adding_point:
+            return
+        pointer_coords = event.value
+        # add to out_of_slice_points
+        self.update_out_of_slice()
+        # update undo stack
+        self.undo_stack.append(self.pointer_type_state.state)
+        # update the button
+        current_points = event.source
+        current_cell_type = next(cell_type for cell_type in self.cell_type_gui_and_data.values()
+                                 if cell_type.layer is current_points)
+        current_cell_type.update_button_text()
+
+
     def new_pointer_point(self, event: Event):
         """
         Handle a new point being added to the pointer
+        by adding to the correct sublayer
         """
         pointer_coords = event.value
         self.pointer.data = []
         current_cell_type = self.cell_type_gui_and_data[
             self.pointer_type_state.state
         ]
+        # dispatch point to appropriate layer
+        # implicitly calls self.handle_data_changed
         current_point_layer = current_cell_type.layer
-        coords_2d = pointer_coords[0][1:]
         current_point_layer.add(coords=pointer_coords)
-        self.out_of_slice_points.add(coords=coords_2d)
-        # update undo stack
-        self.undo_stack.append(self.pointer_type_state.state)
-        # update the button
-        current_cell_type.update_button_text()
         # hack to unselect last added point
+        # prevent layer specific handlers from updateing
+        self.currently_adding_point = True
+        # add and remove point
         current_point_layer.add(coords=pointer_coords)
         current_point_layer.remove_selected()
+        self.currently_adding_point = False
 
     def init_celltype_gui_and_data(
         self, pointer_state: PointerState, data: Optional[np.ndarray] = None
@@ -121,6 +153,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
             face_color="#00000000",
             out_of_slice_display=True,
         )
+        point_layer.events.data.connect(self.handle_data_changed)
         change_state_fun = self._change_state_to(pointer_state)
         self.viewer.bind_key(
             key=pointer_state.keybind, func=change_state_fun, overwrite=True
