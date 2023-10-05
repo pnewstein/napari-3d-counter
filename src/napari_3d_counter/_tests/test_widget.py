@@ -3,7 +3,7 @@ from typing import List
 import numpy as np
 
 from napari_3d_counter import Count3D
-from napari_3d_counter._widget import PointerState
+from napari_3d_counter._widget import PointerState, CellTypeConfig
 
 
 class Event:
@@ -56,6 +56,16 @@ def test_undo(make_napari_viewer):
     default_celltype = next(iter(my_widget.cell_type_gui_and_data.values()))
     assert len(default_celltype.layer.data) == 0
 
+def test_undo_from_manual_add(make_napari_viewer):
+    # make viewer and add an image layer using our fixture
+    viewer = make_napari_viewer()
+    # create our widget, passing in the viewer
+    my_widget = Count3D(viewer, cell_type_config=[CellTypeConfig("name")])
+    assert len(my_widget.undo_stack) == 0
+    viewer.layers["name"].add([1,2,3])
+    # assert len(my_widget.undo_stack) == 1
+    my_widget._undo()
+    assert len(my_widget.undo_stack) == 0
 
 def test_undo_across_states(make_napari_viewer):
     # make viewer and add an image layer using our fixture
@@ -115,3 +125,7 @@ def test_name_counter(make_napari_viewer):
 # # read captured output and check that it's as we expected
 # captured = capsys.readouterr()
 # assert captured.out == f"you have selected {layer}\n"
+
+if __name__ == '__main__':
+    import napari
+    test_undo_from_manual_add(napari.viewer.Viewer)

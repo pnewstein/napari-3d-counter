@@ -107,12 +107,15 @@ class Count3D(QWidget):  # pylint: disable=R0902
         pointer_coords = event.value
         # add to out_of_slice_points
         self.update_out_of_slice()
-        # update undo stack
-        self.undo_stack.append(self.pointer_type_state.state)
-        # update the button
+        # figure out current cell type
         current_points = event.source
-        current_cell_type = next(cell_type for cell_type in self.cell_type_gui_and_data.values()
-                                 if cell_type.layer is current_points)
+        current_cell_type: CellTypeGuiAndData = next(
+            cell_type for cell_type in self.cell_type_gui_and_data.values()
+            if cell_type.layer is current_points
+        )
+        # add to undo stack
+        self.undo_stack.append(current_cell_type.pointer_state.state)
+        # update the button
         current_cell_type.update_button_text()
 
 
