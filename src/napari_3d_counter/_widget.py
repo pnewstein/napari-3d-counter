@@ -196,7 +196,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         btn.clicked.connect(change_state_fun)
         # update button when name changes
         point_layer.events.name.connect(
-            out.update_button_text()
+            out.update_button_text
         )
         return out
 
