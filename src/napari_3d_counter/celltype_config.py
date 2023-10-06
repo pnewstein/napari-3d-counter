@@ -7,29 +7,20 @@ from typing import Optional, Union, Tuple, List
 
 from matplotlib.colors import to_hex
 
-MatplotlibColor = Union[Tuple[float, float, float], Tuple[float, float, float, float], str, None]
+MatplotlibColor = Union[
+    Tuple[float, float, float], Tuple[float, float, float, float], str
+]
 
 DEFAULT_KEYMAP_SEQUENCE = ["q", "w", "e", "r", "t", "y", ""]
 DEFAULT_COLOR_SEQUENCE = [
-    "#ffff00ff", # y
-    "#ff0000ff", # r
-    "#00ffffff", # c
-    "#0000ffff", # b
-    "#ff00ffff", # m
-    "#00ff00ff", # g
-    "#ffffffff", # w
+    "#ffff00ff",  # y
+    "#ff0000ff",  # r
+    "#00ffffff",  # c
+    "#0000ffff",  # b
+    "#ff00ffff",  # m
+    "#00ff00ff",  # g
+    "#ffffffff",  # w
 ]
-
-@dataclass(frozen=True)
-class PointerState:
-    """
-    Represents a counter type
-    """
-
-    keybind: str
-    name: str
-    state: int
-    color: str
 
 
 @dataclass(frozen=True)
@@ -40,12 +31,29 @@ class CellTypeConfig:
 
     name: Optional[str] = None
     "The name to be displayed in the points layer"
-    color: MatplotlibColor = None
+    color: Optional[MatplotlibColor] = None
     "The edgecolor of the points"
-    keybind:  Optional[str] = None
+    keybind: Optional[str] = None
     "the keyboard binding to switch to this celltype"
 
-def fill_in_defaults(requests: List[Optional[str]], defaults: List[str]) -> List[str]:
+
+@dataclass(frozen=True)
+class CellTypeConfigNotOptional:
+    """
+    Data type for specifying configuration of celltype states
+    """
+
+    name: str
+    "The name to be displayed in the points layer"
+    color: str
+    "The edgecolor of the points as a hex color"
+    keybind: str
+    "the keyboard binding to switch to this celltype"
+
+
+def fill_in_defaults(
+    requests: List[Optional[str]], defaults: List[str]
+) -> List[str]:
     """
     Fills in defaults from a list by looking up a unique defalt to use
     """
@@ -63,6 +71,7 @@ def fill_in_defaults(requests: List[Optional[str]], defaults: List[str]) -> List
             out.append(request)
     return out
 
+
 def resolve_color(color: MatplotlibColor) -> str:
     """
     resolves matplotlib color
@@ -70,24 +79,32 @@ def resolve_color(color: MatplotlibColor) -> str:
     return to_hex(color, keep_alpha=True)
 
 
-def process_cell_type_config(cell_type_configs: List[CellTypeConfig]) -> List[PointerState]:
+def process_cell_type_config(
+    cell_type_configs: List[CellTypeConfig],
+) -> List[CellTypeConfigNotOptional]:
     """
     Applies reasonable defaults to a some CellTypeConfigs to make some PointerStates
     """
     n_celltype = len(cell_type_configs)
-    request_color_list = [None if c.color is None else resolve_color(c.color) for c in cell_type_configs]
+    request_color_list = [
+        None if c.color is None else resolve_color(c.color)
+        for c in cell_type_configs
+    ]
     colors = fill_in_defaults(request_color_list, DEFAULT_COLOR_SEQUENCE)
-    keymaps = fill_in_defaults([c.keybind for c in cell_type_configs], DEFAULT_KEYMAP_SEQUENCE)
+    keymaps = fill_in_defaults(
+        [c.keybind for c in cell_type_configs], DEFAULT_KEYMAP_SEQUENCE
+    )
     numbers = list(range(n_celltype))
     default_names = [f"Celltype {n+1}" for n in numbers]
     names: list[str] = []
-    for (default_name, cell_type_config) in zip(default_names, cell_type_configs):
+    for default_name, cell_type_config in zip(
+        default_names, cell_type_configs
+    ):
         if cell_type_config.name is None:
             names.append(default_name)
         else:
             names.append(cell_type_config.name)
     return [
-        PointerState(keybind=keybind, name=name, state=state, color=color)
-        for keybind, name, state, color in
-        zip(keymaps, names, numbers, colors)
+        CellTypeConfigNotOptional(keybind=keybind, name=name, color=color)
+        for keybind, name, color in zip(keymaps, names, colors)
     ]
