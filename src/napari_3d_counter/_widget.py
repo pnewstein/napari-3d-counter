@@ -189,9 +189,10 @@ class Count3D(QWidget):  # pylint: disable=R0902
             keybind=config.keybind, button=btn, layer=point_layer
         )
         change_state_fun = NamedPartial(partial(self.change_state_to, out), config.name)
-        self.viewer.bind_key(
-            key=config.keybind, func=change_state_fun, overwrite=True
-        )
+        if config.keybind:
+            self.viewer.bind_key(
+                key=config.keybind, func=change_state_fun, overwrite=True
+            )
         btn.clicked.connect(change_state_fun)
         # update button when name changes
         point_layer.events.name.connect(
