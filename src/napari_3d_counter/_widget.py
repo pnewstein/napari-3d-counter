@@ -111,7 +111,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         current_points = event.source
         current_cell_type: CellTypeGuiAndData = next(
             cell_type for cell_type in self.cell_type_gui_and_data.values()
-            if repr(cell_type.layer) == repr(current_points)
+            if cell_type.layer.data is current_points.data
         )
         # add to undo stack
         self.undo_stack.append(current_cell_type.pointer_state.state)
