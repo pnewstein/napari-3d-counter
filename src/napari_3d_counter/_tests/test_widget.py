@@ -1,13 +1,17 @@
-from typing import List
+from typing import List, Optional
+from dataclasses import dataclass
 
 import numpy as np
 
-from napari_3d_counter import Count3D
-from napari_3d_counter._widget import CellTypeConfig
+from matplotlib.colors import to_rgba_array
+
+from napari_3d_counter import Count3D, CellTypeConfig
+from napari_3d_counter._widget import DEFUALT_CONFIG
 
 
+@dataclass
 class Event:
-    value: List[np.ndarray]
+    value: Optional[List[np.ndarray]] = None
 
 
 # make_napari_viewer is a pytest fixture that returns a napari viewer object
@@ -24,6 +28,18 @@ def test_change_state(make_napari_viewer):
     ps = my_widget.cell_type_gui_and_data[0]
     my_widget.change_state_to(ps)
     assert my_widget.pointer_type_state == ps
+
+
+def test_change_color(make_napari_viewer):
+    viewer = make_napari_viewer()
+    my_widget = Count3D(viewer)
+    default_celltype = my_widget.cell_type_gui_and_data[0]
+    my_widget.new_pointer_point(Event([np.array([1, 1, 1])]))
+    test_color = to_rgba_array("#12345678")
+    assert sum(default_celltype.layer.edge_color[0] - test_color[0]) > 0.01
+    default_celltype.layer.current_edge_color = test_color[0]
+    print(test_color[0])
+    assert sum(default_celltype.layer.edge_color[0] - test_color[0]) < 0.01
 
 
 def test_add_point(make_napari_viewer):
@@ -132,4 +148,4 @@ def test_name_counter(make_napari_viewer):
 if __name__ == "__main__":
     import napari
 
-    test_undo_from_manual_add(napari.viewer.Viewer)
+    test_change_color(napari.viewer.Viewer)

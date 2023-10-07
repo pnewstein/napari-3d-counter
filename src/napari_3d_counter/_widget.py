@@ -10,6 +10,7 @@ from qtpy.QtWidgets import QVBoxLayout, QPushButton, QWidget, QLabel
 import napari
 from napari.utils.events import Event
 import numpy as np
+from matplotlib.colors import to_rgba_array
 
 
 from .celltype_config import (
@@ -25,13 +26,16 @@ DEFUALT_CONFIG = [
     CellTypeConfig(keybind="r", name="Celltype4", color="m"),
 ]
 
+
 @dataclass
 class NamedPartial:
     """
     contains a functools partial and a name
     """
+
     func: partial
     name: str
+
     def __name__(self):
         return self.name
 
@@ -60,6 +64,16 @@ class CellTypeGuiAndData:
             f"( {self.keybind})"
         )
         self.button.setText(button_text)
+
+    def update_all_colors_to_current_color(self, *args):
+        """
+        updates all edge_colors to current_edge_color
+        """
+        _ = args
+        current_color = to_rgba_array(self.layer.current_edge_color)
+        self.layer.edge_color = np.vstack(
+            [current_color] * self.layer.edge_color.shape[0]
+        )
 
 
 class Count3D(QWidget):  # pylint: disable=R0902
@@ -121,7 +135,12 @@ class Count3D(QWidget):  # pylint: disable=R0902
         assert ndims == 2
         self.out_of_slice_points.data = data
 
-    def look_up_cell_type_from_points(self, points: napari.layers.Points) -> CellTypeGuiAndData:
+    def look_up_cell_type_from_points(
+        self, points: napari.layers.Points
+    ) -> CellTypeGuiAndData:
+        """
+        Returns the cell_type containing those points
+        """
         return next(
             cell_type
             for cell_type in self.cell_type_gui_and_data
@@ -188,15 +207,19 @@ class Count3D(QWidget):  # pylint: disable=R0902
         out = CellTypeGuiAndData(
             keybind=config.keybind, button=btn, layer=point_layer
         )
-        change_state_fun = NamedPartial(partial(self.change_state_to, out), config.name)
+        change_state_fun = NamedPartial(
+            partial(self.change_state_to, out), config.name
+        )
         if config.keybind:
             self.viewer.bind_key(
                 key=config.keybind, func=change_state_fun, overwrite=True
             )
         btn.clicked.connect(change_state_fun)
         # update button when name changes
-        point_layer.events.name.connect(
-            out.update_button_text
+        point_layer.events.name.connect(out.update_button_text)
+        # update color when color changes
+        point_layer.events.current_edge_color.connect(
+            out.update_all_colors_to_current_color
         )
         return out
 
