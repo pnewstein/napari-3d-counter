@@ -260,7 +260,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         cell_type = self.undo_stack.pop()
         point_layer = cell_type.layer
         point_layer.data = point_layer.data[:-1]
-        self.out_of_slice_points.data = self.out_of_slice_points.data[:-1]
+        self.update_out_of_slice()
         # update button
         cell_type.update_button_text()
 
