@@ -4,9 +4,11 @@ implements the counting interface and the reconstruction plugin
 
 from typing import Callable, List, Optional
 from dataclasses import dataclass
+from pathlib import Path
 from functools import partial
+from threading import Thread
 
-from qtpy.QtWidgets import QVBoxLayout, QPushButton, QWidget, QLabel
+from qtpy.QtWidgets import QVBoxLayout, QPushButton, QWidget, QLabel, QFileDialog
 import napari
 from napari.utils.events import Event
 import numpy as np
@@ -129,6 +131,10 @@ class Count3D(QWidget):  # pylint: disable=R0902
         undo_button.clicked.connect(self._undo)
         self.viewer.bind_key(key="u", func=self._undo)
         self.layout().addWidget(undo_button)
+        # code gen button
+        code_gen_button = QPushButton("Make launch_cell_count.py")
+        code_gen_button.clicked.connect(self.gen_code_gui)
+        self.layout().addWidget(code_gen_button)
         # initialize state to the first default
         self.pointer_type_state = self.cell_type_gui_and_data[0]
         self.change_state_to(self.pointer_type_state)
@@ -280,7 +286,18 @@ class Count3D(QWidget):  # pylint: disable=R0902
         )
         return "".join([header]+config_lines+[footer])
 
-
+    def gen_code_gui(self, *args):
+        """
+        does a dialog to save generated python to a file
+        """
+        _ = args
+        python_string = self.config_in_python()
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        file_name, _ = QFileDialog.getSaveFileName(self,"Save File","","All Files(*);;Text Files(*.py)",options = options)
+        if file_name:
+            Path(file_name).write_text(python_string)
+        
 
 
 # Uses the `autogenerate: true` flag in the plugin manifest
