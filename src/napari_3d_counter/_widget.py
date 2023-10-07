@@ -10,7 +10,7 @@ from qtpy.QtWidgets import QVBoxLayout, QPushButton, QWidget, QLabel
 import napari
 from napari.utils.events import Event
 import numpy as np
-from matplotlib.colors import to_rgba_array
+from matplotlib.colors import to_rgba_array, to_hex
 
 
 from .celltype_config import (
@@ -71,8 +71,20 @@ class CellTypeGuiAndData:
         """
         _ = args
         current_color = to_rgba_array(self.layer.current_edge_color)
-        self.layer.edge_color = np.vstack(
-            [current_color] * self.layer.edge_color.shape[0]
+        n_edge_colors = self.layer.edge_color.shape[0]
+        if n_edge_colors:
+            self.layer.edge_color = np.vstack(
+                [current_color] * n_edge_colors
+            )
+
+    def config_python_code(self):
+        """
+        returns a string containing python code, 
+        which can be used to launch the plugin with
+        the current config
+        """
+        return (
+            f'CellTypeConfig(name="{self.layer.name}", color="{to_hex(self.layer.current_edge_color, keep_alpha=True)}", keybind="{self.keybind}")'
         )
 
 
@@ -245,6 +257,30 @@ class Count3D(QWidget):  # pylint: disable=R0902
         self.out_of_slice_points.data = self.out_of_slice_points.data[:-1]
         # update button
         cell_type.update_button_text()
+
+    def config_in_python(self) -> str:
+        """
+        Creates a python string that when runed, 
+        initatiates napari
+        """
+        header = (
+            "import napari\n"
+            "from napari_3d_counter import Count3D, CellTypeConfig\n\n"
+            "viewer = napari.viewer.Viewer()\n"
+            "# set up cell types\n"
+            "config = [\n"
+        )
+        config_lines = [f"    {cell_type.config_python_code()},\n" for cell_type in self.cell_type_gui_and_data]
+        footer = (
+            "]\n"
+            "# make a new viewer\n"
+            "viewer = napari.viewer.Viewer()\n"
+            "# attach plugin to viewer\n"
+            "viewer.window.add_dock_widget(Count3D(viewer, cell_type_config=config))"
+        )
+        return "".join([header]+config_lines+[footer])
+
+
 
 
 # Uses the `autogenerate: true` flag in the plugin manifest
