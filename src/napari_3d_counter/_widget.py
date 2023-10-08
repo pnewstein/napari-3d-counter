@@ -2,7 +2,7 @@
 implements the counting interface and the reconstruction plugin
 """
 
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Tuple
 from dataclasses import dataclass
 from pathlib import Path
 from functools import partial
@@ -61,10 +61,11 @@ class CellTypeGuiAndData:
         Updates the button with current name, and nubmer of cells
         """
         # update the button
-        button_text = (
-            f"[{self.layer.data.shape[0]}] {self.layer.name}"
-            f"( {self.keybind})"
-        )
+        if self.keybind:
+            keybind_str = f" ({self.keybind})"
+        else:
+            keybind_str = ""
+        button_text = f"[{self.layer.data.shape[0]}] {self.layer.name}" + keybind_str
         self.button.setText(button_text)
 
     def update_all_colors_to_current_color(self, *args):
@@ -79,15 +80,19 @@ class CellTypeGuiAndData:
                 [current_color] * n_edge_colors
             )
 
+    def get_calculated_config(self) -> CellTypeConfigNotOptional:
+        """
+        returns the current configuration of the channel
+        """
+        return CellTypeConfigNotOptional(name=self.layer.name, color=to_hex(self.layer.current_edge_color, keep_alpha=True), keybind=self.keybind)
+
     def config_python_code(self):
         """
         returns a string containing python code, 
         which can be used to launch the plugin with
         the current config
         """
-        return (
-            f'CellTypeConfig(name="{self.layer.name}", color="{to_hex(self.layer.current_edge_color, keep_alpha=True)}", keybind="{self.keybind}")'
-        )
+        return repr(self.get_calculated_config())
 
 
 class Count3D(QWidget):  # pylint: disable=R0902
@@ -112,10 +117,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
             ndim=2, size=2, name="out of slice"
         )
         # set up cell type points layers
-        self.cell_type_gui_and_data = [
-            self.init_celltype_gui_and_data(state)
-            for state in calculated_config
-        ]
+        self.cell_type_gui_and_data = [self.init_celltype_gui_and_data(config=config) for config in calculated_config]
         # initalize the pointer points
         self.pointer = self.viewer.add_points(ndim=3, name="Selector")
         self.pointer.mode = "add"
@@ -129,7 +131,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         # handle undo button
         undo_button = QPushButton("undo (u)")
         undo_button.clicked.connect(self._undo)
-        self.viewer.bind_key(key="u", func=self._undo)
+        self.viewer.bind_key(key="u", func=self._undo, overwrite=True)
         self.layout().addWidget(undo_button)
         # code gen button
         code_gen_button = QPushButton("Make launch_cell_count.py")
@@ -219,9 +221,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
             out_of_slice_display=True,
         )
         point_layer.events.data.connect(self.handle_data_changed)
-        btn = QPushButton(
-            f"[{point_layer.data.shape[0]}] {point_layer.name} ({config.keybind})"
-        )
+        btn = QPushButton()
         out = CellTypeGuiAndData(
             keybind=config.keybind, button=btn, layer=point_layer
         )
@@ -229,9 +229,13 @@ class Count3D(QWidget):  # pylint: disable=R0902
             partial(self.change_state_to, out), config.name
         )
         if config.keybind:
-            self.viewer.bind_key(
-                key=config.keybind, func=change_state_fun, overwrite=True
-            )
+            try:
+                self.viewer.bind_key(
+                    key=config.keybind, func=change_state_fun
+                )
+            except ValueError:
+                # probably keybind was already set
+                out.keybind = ""
         btn.clicked.connect(change_state_fun)
         # update button when name changes
         point_layer.events.name.connect(out.update_button_text)
@@ -239,6 +243,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         point_layer.events.current_edge_color.connect(
             out.update_all_colors_to_current_color
         )
+        out.update_button_text()
         return out
 
     def change_state_to(self, state: CellTypeGuiAndData, extra=None):

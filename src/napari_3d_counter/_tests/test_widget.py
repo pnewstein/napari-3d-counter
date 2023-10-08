@@ -57,6 +57,13 @@ def test_add_point(make_napari_viewer):
     default_celltype = my_widget.cell_type_gui_and_data[0]
     assert default_celltype.layer.data.shape == (2, 3)
 
+def test_keybind_conflict(make_napari_viewer):
+    viewer = make_napari_viewer()
+    config = [CellTypeConfig(keybind="q"), CellTypeConfig(keybind="q")]
+    # create our widget, passing in the viewer
+    my_widget = Count3D(viewer, cell_type_config=config)
+    viewer.window.add_dock_widget(my_widget)
+
 
 def test_undo(make_napari_viewer):
     # make viewer and add an image layer using our fixture
@@ -147,5 +154,4 @@ def test_name_counter(make_napari_viewer):
 
 if __name__ == "__main__":
     import napari
-
-    test_change_color(napari.viewer.Viewer)
+    test_keybind_conflict(napari.viewer.Viewer)
