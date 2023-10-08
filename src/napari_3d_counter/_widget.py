@@ -412,7 +412,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         partial_dfs: List[pd.DataFrame] = []
         for cell_type in self.cell_type_gui_and_data:
             partial_df = pd.DataFrame(
-                cell_type.layer.data, columns=["z", "x", "y"]
+                cell_type.layer.data, columns=["z", "y", "x"]
             )
             partial_df.insert(0, "cell_type", cell_type.layer.name)
             partial_dfs.append(partial_df)
@@ -432,7 +432,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         for config, layer_name in zip(
             self.initial_config[-len(layer_names) :], layer_names
         ):
-            points = data.loc[data["cell_type"] == layer_name, ["z", "x", "y"]]
+            points = data.loc[data["cell_type"] == layer_name, ["z", "y", "x"]]
             cell_type = self.init_celltype_gui_and_data(config, data=points)
             self.cell_type_gui_and_data.append(cell_type)
             # put button right below the last one

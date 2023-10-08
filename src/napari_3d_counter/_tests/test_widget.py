@@ -146,7 +146,7 @@ def test_save_points_to_df_empty(make_napari_viewer):
     my_widget = Count3D(viewer)
     df = my_widget.save_points_to_df()
     assert len(df.index) == 0
-    assert list(df.columns) == ["cell_type", "z", "x", "y"]
+    assert list(df.columns) == ["cell_type", "z", "y", "x"]
 
 
 def test_save_points_to_df(make_napari_viewer):
@@ -157,7 +157,7 @@ def test_save_points_to_df(make_napari_viewer):
     my_widget.new_pointer_point(Event([np.array([2, 2, 2])]))
     df = my_widget.save_points_to_df()
     assert len(df.index) == 2
-    assert np.all(df.columns == np.array(["cell_type", "z", "x", "y"]))
+    assert np.all(df.columns == np.array(["cell_type", "z", "y", "x"]))
 
 
 def test_load_points_from_df(make_napari_viewer):
@@ -167,8 +167,8 @@ def test_load_points_from_df(make_napari_viewer):
         {
             "cell_type": ["1", "1", "2", "2"],
             "z": [1, 1, 1, 1],
-            "x": [0, 1, 2, 3],
             "y": [3, 2, 1, 0],
+            "x": [0, 1, 2, 3],
         }
     )
     my_widget.read_points_from_df(df)
@@ -184,8 +184,8 @@ def test_name_conflict(make_napari_viewer):
         {
             "cell_type": ["1", "1", "2", "2"],
             "z": [1, 1, 1, 1],
-            "x": [0, 1, 2, 3],
             "y": [3, 2, 1, 0],
+            "x": [0, 1, 2, 3],
         }
     )
     my_widget.read_points_from_df(df)
@@ -202,8 +202,8 @@ def test_color_conflict(make_napari_viewer):
         {
             "cell_type": ["1", "1", "2", "2"],
             "z": [1, 1, 1, 1],
-            "x": [0, 1, 2, 3],
             "y": [3, 2, 1, 0],
+            "x": [0, 1, 2, 3],
         }
     )
     my_widget.read_points_from_df(df)
