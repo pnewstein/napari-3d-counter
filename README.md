@@ -36,9 +36,62 @@ To install latest development version :
     pip install git+https://github.com/pnewstein/napari-3d-counter.git
 
 
-## Usage
+##  Count3D Usage
 
-Both Count3D and reconstruct selected can be found in the plugin menu.
+Count3D can be launched from the plugin menu
+
+### Adding a cell
+
+You can add a cell of the currently selected cell type by clicking on the viewer.
+
+- Ensure that `Point adder` layer is selected
+- Ensure that `Add points` tool is selected
+- Click on the viewer where you would like the point to be added
+
+The counter on the current cell type's button will be incremented
+
+### Changing cell type
+
+You can change the currently selected cell type by clicking on that cell type's
+button. This change will be reflected in the GUI. Additionally, the keyboard
+shortcut for that cell type can be used. Keyboard shortcuts are listed on the
+button, and are "q", "w", "e", "r", "t", "y" by default
+
+### Undo last added cell
+
+The undo button (shortcut u) will remove last added cell, regardless of
+cell type
+
+### Remove a particular cell
+
+To remove a particular cell. Change to the layer containing the cell you would
+like to remove. Then select the `select points` tool to select the points to
+delete, then use `Delete selected points` to delete those points
+
+This change will be reflected in the counts.
+
+
+### Change appearance of a cell type
+
+Changes to the name or edge color of a points layer will be reflected in the
+previously added points, as well as the GUI.
+
+### Save configuration
+
+Use the `Make launch_cell_count.py` button to create a python script that will
+launch napari with 3DCounter added to the dock and current cell type appearances
+already loaded
+
+### Save cells
+
+Use the "Save cells" button to save the cell coordinates for all layers into a
+csv file
+
+### Load cells
+
+Use the "Load cells" button to load the cells from a csv file into new layers
+
+### Launch with saved configuration
 
 To run Count3D with custom configuration, paste the following code into your napari ipython console
 

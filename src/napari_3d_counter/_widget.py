@@ -178,10 +178,10 @@ class Count3D(QWidget):  # pylint: disable=R0902
         self.layout().addWidget(code_gen_button)
         # save and load
         row_layout = QHBoxLayout()
-        save_button = QPushButton("save cells")
+        save_button = QPushButton("Save cells")
         save_button.clicked.connect(self.save_data_gui)
         row_layout.addWidget(save_button)
-        save_button = QPushButton("load cells")
+        save_button = QPushButton("Load cells")
         save_button.clicked.connect(self.load_data_gui)
         row_layout.addWidget(save_button)
         self.layout().addLayout(row_layout)
