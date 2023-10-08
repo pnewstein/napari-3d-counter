@@ -36,6 +36,16 @@ DEFUALT_CONFIG = [
 ]
 
 
+def get_text_color(background_color: str) -> str:
+    """
+    returns black or white as hex string 
+    depending on what works better with the backround
+    """
+    # same function as dinstinctipy
+    red, green, blue, _ = to_rgba_array(background_color)[0]
+    return "#ffffff" if (red * 0.299 + green * 0.587 + blue * 0.114) < 0.6 else "#000000"
+
+
 @dataclass
 class NamedPartial:
     """
@@ -63,7 +73,7 @@ class CellTypeGuiAndData:
     button: QPushButton
     layer: napari.layers.Points
 
-    def update_button_text(self):
+    def update_button_gui(self):
         """
         Updates the button with current name, and nubmer of cells
         """
@@ -76,12 +86,10 @@ class CellTypeGuiAndData:
             f"[{self.layer.data.shape[0]}] {self.layer.name}" + keybind_str
         )
         self.button.setText(button_text)
-
-    def update_all_colors_to_current_color(self, *args):
-        """
-        updates all edge_colors to current_edge_color
-        """
-        _ = args
+        color = to_hex(self.layer.current_edge_color)
+        style_sheet = f"background-color: {color}; color: {get_text_color(color)}"
+        self.button.setStyleSheet(style_sheet)
+        # updates all edge_colors to current_edge_color
         current_color = to_rgba_array(self.layer.current_edge_color)
         n_edge_colors = self.layer.edge_color.shape[0]
         if n_edge_colors:
@@ -210,7 +218,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         # add to undo stack
         self.undo_stack.append(current_cell_type)
         # update the button
-        current_cell_type.update_button_text()
+        current_cell_type.update_button_gui()
 
     def new_pointer_point(self, event: Event):
         """
@@ -265,12 +273,12 @@ class Count3D(QWidget):  # pylint: disable=R0902
                 out.keybind = ""
         btn.clicked.connect(change_state_fun)
         # update button when name changes
-        point_layer.events.name.connect(out.update_button_text)
+        point_layer.events.name.connect(out.update_button_gui)
         # update color when color changes
         point_layer.events.current_edge_color.connect(
-            out.update_all_colors_to_current_color
+            self.update_gui
         )
-        out.update_button_text()
+        out.update_button_gui()
         return out
 
     def change_state_to(self, state: CellTypeGuiAndData, extra=None):
@@ -294,7 +302,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         point_layer.data = point_layer.data[:-1]
         self.update_out_of_slice()
         # update button
-        cell_type.update_button_text()
+        cell_type.update_button_gui()
 
     def config_in_python(self) -> str:
         """
@@ -412,6 +420,16 @@ class Count3D(QWidget):  # pylint: disable=R0902
             )
             self.layout().insertWidget(layout_index + 1, cell_type.button)
         self.update_out_of_slice()
+
+    def update_gui(self, *args, **kwargs):
+        """
+        Updates button color and button text
+        """
+        _ = args
+        _ = kwargs
+        for cell_type in self.cell_type_gui_and_data:
+            cell_type.update_button_gui()
+
 
 
 # Uses the `autogenerate: true` flag in the plugin manifest
