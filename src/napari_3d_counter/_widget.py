@@ -461,10 +461,18 @@ def reconstruct_selected(
     labels_layer: napari.layers.labels.Labels,
     point_layer: napari.layers.points.Points,
     viewer: napari.viewer.Viewer,
-):
+) -> np.ndarray:
     """
     Reconstructs the layers in an image
     """
     name = point_layer.name
-    viewer.add_image(name=f"{name} reconstruction")
-    raise NotImplementedError()
+    reconstruction_data = np.zeros(labels_layer.data.shape).astype(np.int8)
+    for point in point_layer.data:
+        xcoord, ycoord, zcoord = point.astype(int)
+        neuron_label = labels_layer.data[xcoord, ycoord, zcoord]
+        if neuron_label == 0:
+            print(f"skipping a point outside a lable at {[xcoord, ycoord, zcoord]}")
+            continue
+        reconstruction_data[labels_layer.data == neuron_label] = 1
+    viewer.add_image(reconstruction_data, name=f"{name} reconstruction", blending="additive", rendering="iso")
+    return reconstruction_data
