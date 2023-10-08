@@ -29,6 +29,7 @@ def test_specified_default():
         cc.DEFAULT_COLOR_SEQUENCE[2],
     ]
 
+
 def test_name_conflict():
     ctc = [
         cc.CellTypeConfig("Cell1"),
@@ -39,6 +40,7 @@ def test_name_conflict():
     out = cc.process_cell_type_config(ctc)
     print(out)
     assert out[-1].name == "Cell1 [1]"
+
 
 def test_process_cell_type_config():
     ctc = [

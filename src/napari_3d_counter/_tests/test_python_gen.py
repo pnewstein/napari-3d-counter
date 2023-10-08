@@ -17,6 +17,7 @@ def test_code_gen_name(make_napari_viewer):
     config = eval(python_string)
     assert config.name == "test name"
 
+
 def test_code_gen_color(make_napari_viewer):
     viewer = make_napari_viewer()
     my_widget = Count3D(viewer)
@@ -26,6 +27,7 @@ def test_code_gen_color(make_napari_viewer):
     _ = CellTypeConfigNotOptional
     config = eval(python_string)
     assert config.color == "#ffffffff"
+
 
 def test_config_self(make_napari_viewer):
     viewer = make_napari_viewer()
@@ -41,11 +43,14 @@ def test_config_self(make_napari_viewer):
     cell_type = my_widget.cell_type_gui_and_data[0]
     assert cell_type.layer.name == "loop"
 
+
 def test_print_config(make_napari_viewer):
     viewer = make_napari_viewer()
     my_widget = Count3D(viewer)
     print(my_widget.config_in_python())
 
+
 if __name__ == "__main__":
     import napari
+
     test_print_config(napari.viewer.Viewer)
