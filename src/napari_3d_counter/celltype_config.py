@@ -80,7 +80,7 @@ def resolve_color(color: MatplotlibColor) -> str:
 
 
 def process_cell_type_config(
-    cell_type_configs: List[CellTypeConfig],
+    cell_type_configs: List[Union[CellTypeConfig, CellTypeConfigNotOptional]],
 ) -> List[CellTypeConfigNotOptional]:
     """
     Applies reasonable defaults to a some CellTypeConfigs to make some PointerStates

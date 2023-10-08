@@ -2,6 +2,7 @@ from typing import List, Optional
 from dataclasses import dataclass
 
 import numpy as np
+import pandas as pd
 
 from matplotlib.colors import to_rgba_array
 
@@ -137,6 +138,60 @@ def test_name_counter(make_napari_viewer):
     my_widget.update_out_of_slice()
     assert my_widget.out_of_slice_points.data.shape == (0, 2)
 
+def test_save_points_to_df_empty(make_napari_viewer):
+    viewer = make_napari_viewer()
+    my_widget = Count3D(viewer)
+    df = my_widget.save_points_to_df()
+    assert len(df.index) == 0
+    assert list(df.columns) == ["cell_type", "z", "x", "y"]
+
+
+def test_save_points_to_df(make_napari_viewer):
+    viewer = make_napari_viewer()
+    my_widget = Count3D(viewer)
+    my_widget.new_pointer_point(Event([np.array([1, 1, 1])]))
+    my_widget.change_state_to(my_widget.cell_type_gui_and_data[1])
+    my_widget.new_pointer_point(Event([np.array([2, 2, 2])]))
+    df = my_widget.save_points_to_df()
+    assert len(df.index) == 2
+    assert np.all(df.columns == np.array(["cell_type", "z", "x", "y"]))
+
+def test_load_points_from_df(make_napari_viewer):
+    viewer = make_napari_viewer()
+    my_widget = Count3D(viewer)
+    df = pd.DataFrame({
+        "cell_type": ["1", "1", "2", "2"], "z": [1, 1, 1, 1], "x": [0, 1, 2, 3], "y": [3, 2, 1, 0]
+    })
+    my_widget.read_points_from_df(df)
+    print(my_widget.cell_type_gui_and_data[-1])
+    assert my_widget.cell_type_gui_and_data[-1].layer.name == "2"
+
+def test_name_conflict(make_napari_viewer):
+    viewer = make_napari_viewer()
+    config = [CellTypeConfig("2")]
+    my_widget = Count3D(viewer, cell_type_config=config)
+    df = pd.DataFrame({
+        "cell_type": ["1", "1", "2", "2"], "z": [1, 1, 1, 1], "x": [0, 1, 2, 3], "y": [3, 2, 1, 0]
+    })
+    my_widget.read_points_from_df(df)
+    viewer.window.add_dock_widget(my_widget)
+    print(my_widget.cell_type_gui_and_data[-1])
+    assert my_widget.cell_type_gui_and_data[-1].layer.name == "2 [1]"
+
+def test_load_save_loop(make_napari_viewer):
+    viewer = make_napari_viewer()
+    my_widget = Count3D(viewer, [CellTypeConfig(name="test_name")])
+    my_widget.new_pointer_point(Event([np.array([1, 1, 1])]))
+    df = my_widget.save_points_to_df()
+    # load into a different widget
+    viewer = make_napari_viewer()
+    my_widget = Count3D(viewer, [])
+    my_widget.read_points_from_df(df)
+    cell_type = my_widget.cell_type_gui_and_data[-1]
+    print(cell_type)
+    assert cell_type.layer.name == "test_name"
+    assert cell_type.layer.data.shape[0] == 1
+
 
 # def test_example_magic_widget(make_napari_viewer, capsys):
 # viewer = make_napari_viewer()
@@ -154,4 +209,4 @@ def test_name_counter(make_napari_viewer):
 
 if __name__ == "__main__":
     import napari
-    test_keybind_conflict(napari.viewer.Viewer)
+    test_load_save_loop(napari.viewer.Viewer)

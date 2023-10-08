@@ -12,6 +12,7 @@ from qtpy.QtWidgets import QVBoxLayout, QPushButton, QWidget, QLabel, QFileDialo
 import napari
 from napari.utils.events import Event
 import numpy as np
+import pandas as pd
 from matplotlib.colors import to_rgba_array, to_hex
 
 
@@ -108,7 +109,10 @@ class Count3D(QWidget):  # pylint: disable=R0902
         super().__init__()
         if cell_type_config is None:
             cell_type_config = DEFUALT_CONFIG
-        calculated_config = process_cell_type_config(cell_type_config)
+        if len(cell_type_config) == 0:
+            print("Cannot initialize with no cell types. Using default cell types")
+            cell_type_config = DEFUALT_CONFIG
+        self.initial_config = process_cell_type_config(cell_type_config) #type: ignore
         self.viewer = napari_viewer
         self.undo_stack: List[CellTypeGuiAndData] = []
         self.currently_adding_point = False
@@ -117,7 +121,10 @@ class Count3D(QWidget):  # pylint: disable=R0902
             ndim=2, size=2, name="out of slice"
         )
         # set up cell type points layers
-        self.cell_type_gui_and_data = [self.init_celltype_gui_and_data(config=config) for config in calculated_config]
+        self.cell_type_gui_and_data = [
+            self.init_celltype_gui_and_data(state)
+            for state in self.initial_config
+        ]
         # initalize the pointer points
         self.pointer = self.viewer.add_points(ndim=3, name="Selector")
         self.pointer.mode = "add"
@@ -303,6 +310,33 @@ class Count3D(QWidget):  # pylint: disable=R0902
         if file_name:
             Path(file_name).write_text(python_string)
         
+    def save_points_to_df(self) -> pd.DataFrame:
+        """
+        Saves all points a data frame with the columns
+            cell_type("str"), z(float), x(float), y(float)
+        """
+        partial_dfs: List[pd.DataFrame] = []
+        for cell_type in self.cell_type_gui_and_data:
+            partial_df = pd.DataFrame(cell_type.layer.data, columns=["z", "x", "y"])
+            partial_df.insert(0, "cell_type", cell_type.layer.name)
+            partial_dfs.append(partial_df)
+        out = pd.concat(partial_dfs)
+        return out
+
+    def read_points_from_df(self, data: pd.DataFrame):
+        """
+        reads all points a data frame with the columns
+            cell_type("str"), z(float), x(float), y(float)
+        """
+        layer_names = np.unique(data["cell_type"])
+        self.initial_config = process_cell_type_config(self.initial_config + [CellTypeConfig(name=name) for name in layer_names])
+        for layer_name in layer_names:
+            points = data.loc[data["cell_type"] == layer_name, ["z", "x", "y"]]
+            config = next(cell_type for cell_type in self.initial_config if cell_type.name == layer_name)
+            self.cell_type_gui_and_data.append(self.init_celltype_gui_and_data(config, data=points))
+        self.update_out_of_slice()
+
+
 
 
 # Uses the `autogenerate: true` flag in the plugin manifest
