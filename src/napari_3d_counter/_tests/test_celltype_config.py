@@ -30,6 +30,18 @@ def test_specified_default():
     ]
 
 
+def test_name_conflict():
+    ctc = [
+        cc.CellTypeConfig("Cell1"),
+        cc.CellTypeConfig(
+            "Cell1",
+        ),
+    ]
+    out = cc.process_cell_type_config(ctc)
+    print(out)
+    assert out[-1].name == "Cell1 [1]"
+
+
 def test_process_cell_type_config():
     ctc = [
         cc.CellTypeConfig(),
@@ -56,4 +68,4 @@ def test_process_cell_type_config():
 
 
 if __name__ == "__main__":
-    test_process_cell_type_config()
+    test_name_conflict()

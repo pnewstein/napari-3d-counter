@@ -104,7 +104,17 @@ def process_cell_type_config(
             names.append(default_name)
         else:
             names.append(cell_type_config.name)
+    # prevent name conflicts:
+    unique_names: list[str] = []
+    for name in names:
+        if name not in unique_names:
+            unique_names.append(name)
+            continue
+        name_int = 1
+        while f"{name} [{name_int}]" in unique_names:
+            name_int += 1
+        unique_names.append(f"{name} [{name_int}]")
     return [
         CellTypeConfigNotOptional(keybind=keybind, name=name, color=color)
-        for keybind, name, color in zip(keymaps, names, colors)
+        for keybind, name, color in zip(keymaps, unique_names, colors)
     ]

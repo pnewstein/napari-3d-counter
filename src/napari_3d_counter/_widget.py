@@ -6,12 +6,19 @@ from typing import Callable, List, Optional, Tuple
 from dataclasses import dataclass
 from pathlib import Path
 from functools import partial
-from threading import Thread
 
-from qtpy.QtWidgets import QVBoxLayout, QPushButton, QWidget, QLabel, QFileDialog
+from qtpy.QtWidgets import (
+    QVBoxLayout,
+    QPushButton,
+    QWidget,
+    QLabel,
+    QFileDialog,
+    QHBoxLayout,
+)
 import napari
 from napari.utils.events import Event
 import numpy as np
+import pandas as pd
 from matplotlib.colors import to_rgba_array, to_hex
 
 
@@ -65,7 +72,9 @@ class CellTypeGuiAndData:
             keybind_str = f" ({self.keybind})"
         else:
             keybind_str = ""
-        button_text = f"[{self.layer.data.shape[0]}] {self.layer.name}" + keybind_str
+        button_text = (
+            f"[{self.layer.data.shape[0]}] {self.layer.name}" + keybind_str
+        )
         self.button.setText(button_text)
 
     def update_all_colors_to_current_color(self, *args):
@@ -76,19 +85,21 @@ class CellTypeGuiAndData:
         current_color = to_rgba_array(self.layer.current_edge_color)
         n_edge_colors = self.layer.edge_color.shape[0]
         if n_edge_colors:
-            self.layer.edge_color = np.vstack(
-                [current_color] * n_edge_colors
-            )
+            self.layer.edge_color = np.vstack([current_color] * n_edge_colors)
 
     def get_calculated_config(self) -> CellTypeConfig:
         """
         returns the current configuration of the channel
         """
-        return CellTypeConfig(name=self.layer.name, color=to_hex(self.layer.current_edge_color, keep_alpha=True), keybind=self.keybind)
+        return CellTypeConfig(
+            name=self.layer.name,
+            color=to_hex(self.layer.current_edge_color, keep_alpha=True),
+            keybind=self.keybind,
+        )
 
     def config_python_code(self):
         """
-        returns a string containing python code, 
+        returns a string containing python code,
         which can be used to launch the plugin with
         the current config
         """
@@ -108,7 +119,12 @@ class Count3D(QWidget):  # pylint: disable=R0902
         super().__init__()
         if cell_type_config is None:
             cell_type_config = DEFUALT_CONFIG
-        calculated_config = process_cell_type_config(cell_type_config)
+        if len(cell_type_config) == 0:
+            print(
+                "Cannot initialize with no cell types. Using default cell types"
+            )
+            cell_type_config = DEFUALT_CONFIG
+        self.initial_config = process_cell_type_config(cell_type_config)
         self.viewer = napari_viewer
         self.undo_stack: List[CellTypeGuiAndData] = []
         self.currently_adding_point = False
@@ -117,9 +133,12 @@ class Count3D(QWidget):  # pylint: disable=R0902
             ndim=2, size=2, name="out of slice"
         )
         # set up cell type points layers
-        self.cell_type_gui_and_data = [self.init_celltype_gui_and_data(config=config) for config in calculated_config]
+        self.cell_type_gui_and_data = [
+            self.init_celltype_gui_and_data(state)
+            for state in self.initial_config
+        ]
         # initalize the pointer points
-        self.pointer = self.viewer.add_points(ndim=3, name="Selector")
+        self.pointer = self.viewer.add_points(ndim=3, name="Point adder")
         self.pointer.mode = "add"
         self.pointer.events.data.connect(self.new_pointer_point)
         # init qt gui
@@ -137,6 +156,16 @@ class Count3D(QWidget):  # pylint: disable=R0902
         code_gen_button = QPushButton("Make launch_cell_count.py")
         code_gen_button.clicked.connect(self.gen_code_gui)
         self.layout().addWidget(code_gen_button)
+        # save and load
+        row_layout = QHBoxLayout()
+        save_button = QPushButton("save cells")
+        save_button.clicked.connect(self.save_data_gui)
+        row_layout.addWidget(save_button)
+        save_button = QPushButton("load cells")
+        save_button.clicked.connect(self.load_data_gui)
+        row_layout.addWidget(save_button)
+        self.layout().addLayout(row_layout)
+
         # initialize state to the first default
         self.pointer_type_state = self.cell_type_gui_and_data[0]
         self.change_state_to(self.pointer_type_state)
@@ -230,9 +259,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         )
         if config.keybind:
             try:
-                self.viewer.bind_key(
-                    key=config.keybind, func=change_state_fun
-                )
+                self.viewer.bind_key(key=config.keybind, func=change_state_fun)
             except ValueError:
                 # probably keybind was already set
                 out.keybind = ""
@@ -271,7 +298,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
 
     def config_in_python(self) -> str:
         """
-        Creates a python string that when runed, 
+        Creates a python string that when runed,
         initatiates napari
         """
         header = (
@@ -281,7 +308,10 @@ class Count3D(QWidget):  # pylint: disable=R0902
             "# set up cell types\n"
             "config = [\n"
         )
-        config_lines = [f"    {cell_type.config_python_code()},\n" for cell_type in self.cell_type_gui_and_data]
+        config_lines = [
+            f"    {cell_type.config_python_code()},\n"
+            for cell_type in self.cell_type_gui_and_data
+        ]
         footer = (
             "]\n"
             "# make a new viewer\n"
@@ -289,7 +319,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
             "# attach plugin to viewer\n"
             "viewer.window.add_dock_widget(Count3D(viewer, cell_type_config=config))"
         )
-        return "".join([header]+config_lines+[footer])
+        return "".join([header] + config_lines + [footer])
 
     def gen_code_gui(self, *args):
         """
@@ -299,10 +329,89 @@ class Count3D(QWidget):  # pylint: disable=R0902
         python_string = self.config_in_python()
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        file_name, _ = QFileDialog.getSaveFileName(self,"Save File","","All Files(*);;Text Files(*.py)",options = options)
+        file_name, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save File",
+            "launch_cell_count.py",
+            "Python File(*.py);;File(*)",
+            options=options,
+        )
         if file_name:
             Path(file_name).write_text(python_string)
-        
+
+    def save_data_gui(self, *args):
+        """
+        does a dialog to save counts to csv
+        """
+        _ = args
+        data = self.save_points_to_df()
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        file_name, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save File",
+            "points.csv",
+            "CSV Files(*.csv);;File(*)",
+            options=options,
+        )
+        if file_name:
+            data.to_csv(file_name, index=False)
+
+    def load_data_gui(self, *args):
+        """
+        does a dialog to load counts from csv
+        """
+        _ = args
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        file_name, _ = QFileDialog.getOpenFileName(
+            self,
+            "Save File",
+            "points.csv",
+            "CSV Files(*.csv);;File(*)",
+            options=options,
+        )
+        if file_name:
+            data = pd.read_csv(file_name)
+            self.read_points_from_df(data)
+
+    def save_points_to_df(self) -> pd.DataFrame:
+        """
+        Saves all points a data frame with the columns
+            cell_type("str"), z(float), x(float), y(float)
+        """
+        partial_dfs: List[pd.DataFrame] = []
+        for cell_type in self.cell_type_gui_and_data:
+            partial_df = pd.DataFrame(
+                cell_type.layer.data, columns=["z", "x", "y"]
+            )
+            partial_df.insert(0, "cell_type", cell_type.layer.name)
+            partial_dfs.append(partial_df)
+        out = pd.concat(partial_dfs)
+        return out
+
+    def read_points_from_df(self, data: pd.DataFrame):
+        """
+        reads all points a data frame with the columns
+            cell_type("str"), z(float), x(float), y(float)
+        """
+        layer_names = np.unique(data["cell_type"])
+        self.initial_config = process_cell_type_config(
+            [ct.get_calculated_config() for ct in self.cell_type_gui_and_data]
+            + [CellTypeConfig(name=name) for name in layer_names]
+        )
+        for config, layer_name in zip(
+            self.initial_config[-len(layer_names) :], layer_names
+        ):
+            points = data.loc[data["cell_type"] == layer_name, ["z", "x", "y"]]
+            cell_type = self.init_celltype_gui_and_data(config, data=points)
+            self.cell_type_gui_and_data.append(cell_type)
+            # put button right below the last one
+            layout_index = self.layout().indexOf(
+                self.cell_type_gui_and_data[-2].button
+            )
+            self.layout().insertWidget(layout_index + 1, cell_type.button)
+        self.update_out_of_slice()
 
 
 # Uses the `autogenerate: true` flag in the plugin manifest
