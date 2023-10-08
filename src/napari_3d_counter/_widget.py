@@ -2,7 +2,7 @@
 implements the counting interface and the reconstruction plugin
 """
 
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple, Literal
 from dataclasses import dataclass
 from pathlib import Path
 from functools import partial
@@ -14,7 +14,9 @@ from qtpy.QtWidgets import (
     QLabel,
     QFileDialog,
     QHBoxLayout,
+    QFrame
 )
+from qtpy.QtCore import Qt
 import napari
 from napari.utils.events import Event
 import numpy as np
@@ -42,8 +44,11 @@ def get_text_color(background_color: str) -> str:
     depending on what works better with the backround
     """
     # same function as dinstinctipy
+    white = "#ffffff"
+    black = "#000000"
     red, green, blue, _ = to_rgba_array(background_color)[0]
-    return "#ffffff" if (red * 0.299 + green * 0.587 + blue * 0.114) < 0.6 else "#000000"
+    text_color = white if(red * 0.299 + green * 0.587 + blue * 0.114) < 0.6 else black
+    return text_color
 
 
 @dataclass
@@ -87,7 +92,10 @@ class CellTypeGuiAndData:
         )
         self.button.setText(button_text)
         color = to_hex(self.layer.current_edge_color)
-        style_sheet = f"background-color: {color}; color: {get_text_color(color)}"
+        text_color = get_text_color(color)
+        # hover_color is half way between text color and hover_color
+        hover_color_rgb = (to_rgba_array(text_color)[0] + to_rgba_array(color)[0]) / 2
+        style_sheet = f"QPushButton{{background-color: {color}; color: {text_color};}} QPushButton:hover{{background-color: {to_hex(hover_color_rgb)}}}"
         self.button.setStyleSheet(style_sheet)
         # updates all edge_colors to current_edge_color
         current_color = to_rgba_array(self.layer.current_edge_color)
@@ -152,7 +160,11 @@ class Count3D(QWidget):  # pylint: disable=R0902
         # init qt gui
         self.setLayout(QVBoxLayout())
         self.pointer_type_state_label = QLabel()
+        self.pointer_type_state_label.setAlignment(Qt.AlignCenter)
         self.layout().addWidget(self.pointer_type_state_label)
+        hline = QFrame()
+        hline.setFrameShape(QFrame.HLine)
+        self.layout().addWidget(hline)
         for cell_type in self.cell_type_gui_and_data:
             self.layout().addWidget(cell_type.button)
         # handle undo button
@@ -281,13 +293,22 @@ class Count3D(QWidget):  # pylint: disable=R0902
         out.update_button_gui()
         return out
 
-    def change_state_to(self, state: CellTypeGuiAndData, extra=None):
+    def change_state_to(self, state: CellTypeGuiAndData, *args, **kwargs):
         """
         Changes the state
         """
-        _ = extra
+        _ = args
+        _ = kwargs
         self.pointer_type_state = state
-        self.pointer_type_state_label.setText(state.layer.name)
+        self.update_pointer_state_label()
+
+
+    def update_pointer_state_label(self):
+        self.pointer_type_state_label.setText(self.pointer_type_state.layer.name)
+        color = to_hex(self.pointer_type_state.layer.current_edge_color)
+        text_color = get_text_color(color)
+        style_sheet = f"background-color: {color}; color: {text_color}; font-size: 20px"
+        self.pointer_type_state_label.setStyleSheet(style_sheet)
 
     def _undo(self, opt=None):
         """
@@ -429,6 +450,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         _ = kwargs
         for cell_type in self.cell_type_gui_and_data:
             cell_type.update_button_gui()
+        self.update_pointer_state_label()
 
 
 
