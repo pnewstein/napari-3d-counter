@@ -3,7 +3,7 @@ Contains code for specifying style: keyboard shortcut, color, name
 """
 
 from dataclasses import dataclass
-from typing import Optional, Union, Tuple, List
+from typing import List, Optional, Tuple, Union
 
 from matplotlib.colors import to_hex
 

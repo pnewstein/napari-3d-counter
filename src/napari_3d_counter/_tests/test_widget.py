@@ -1,13 +1,11 @@
-from typing import List, Optional
 from dataclasses import dataclass
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
+from matplotlib.colors import to_hex, to_rgba_array
 
-from matplotlib.colors import to_rgba_array, to_hex
-
-from napari_3d_counter import Count3D, CellTypeConfig
-from napari_3d_counter._widget import DEFUALT_CONFIG
+from napari_3d_counter import CellTypeConfig, Count3D
 from napari_3d_counter.celltype_config import DEFAULT_COLOR_SEQUENCE
 
 
@@ -78,7 +76,7 @@ def test_undo(make_napari_viewer):
     event = Event()
     event.value = [np.array([1, 1, 1])]
     my_widget.new_pointer_point(event)
-    my_widget._undo()
+    my_widget.undo()
     default_celltype = my_widget.cell_type_gui_and_data[0]
     assert len(default_celltype.layer.data) == 0
 
@@ -91,7 +89,7 @@ def test_undo_from_manual_add(make_napari_viewer):
     assert len(my_widget.undo_stack) == 0
     viewer.layers["name"].add([1, 2, 3])
     # assert len(my_widget.undo_stack) == 1
-    my_widget._undo()
+    my_widget.undo()
     assert len(my_widget.undo_stack) == 0
 
 
@@ -110,14 +108,14 @@ def test_undo_across_states(make_napari_viewer):
     my_widget.change_state_to(my_widget.cell_type_gui_and_data[1])
     my_widget.new_pointer_point(event)
     event.value = [np.array([2, 2, 2])]
-    my_widget._undo()  # other state
-    my_widget._undo()  # current state state
+    my_widget.undo()  # other state
+    my_widget.undo()  # current state state
     default_celltype = my_widget.cell_type_gui_and_data[0]
     assert len(default_celltype.layer.data) == 1
     # saturate undos without errors
-    my_widget._undo()
-    my_widget._undo()
-    my_widget._undo()
+    my_widget.undo()
+    my_widget.undo()
+    my_widget.undo()
 
 
 def test_name_counter(make_napari_viewer):
@@ -130,7 +128,7 @@ def test_name_counter(make_napari_viewer):
     assert default_celltype.button.text()[1] == "1"
     my_widget.new_pointer_point(event)
     assert default_celltype.button.text()[1] == "2"
-    my_widget._undo()
+    my_widget.undo()
     assert default_celltype.button.text()[1] == "1"
 
 

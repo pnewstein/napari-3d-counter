@@ -2,7 +2,7 @@
 tests the reconstruct selected plugin
 """
 
-from typing import Tuple, List
+from typing import List, Tuple
 
 import numpy as np
 from skimage.morphology import ball
@@ -23,7 +23,7 @@ def place_ball(
 def make_sample_data(points: List[Tuple[int, int, int]]) -> np.ndarray:
     labels = np.zeros(shape=(30, 200, 200)).astype(int)
     for i, point in enumerate(points, start=1):
-        labels = place_ball(labels, tuple((p - 5 for p in point)), i)
+        labels = place_ball(labels, tuple(p - 5 for p in point), i)
     return labels
 
 

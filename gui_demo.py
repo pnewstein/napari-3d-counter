@@ -2,14 +2,14 @@
 Launches napari with some nice sample data for testing the gui
 """
 
-from typing import Tuple
-from pathlib import Path
 import os
+from pathlib import Path
+from typing import Tuple
 
 import napari
-from skimage.morphology import ball
-from skimage.filters import gaussian
 import numpy as np
+from skimage.filters import gaussian
+from skimage.morphology import ball
 
 temp_path = Path("/tmp/napari-3d-counter")
 temp_path.mkdir(exist_ok=True)

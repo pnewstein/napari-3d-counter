@@ -2,7 +2,7 @@ import napari
 
 viewer = napari.viewer.Viewer()
 
-from napari_3d_counter import Count3D, CellTypeConfig
+from napari_3d_counter import CellTypeConfig, Count3D
 
 cell_type_config = [
     CellTypeConfig(name="cq+eve+", color="g"),
