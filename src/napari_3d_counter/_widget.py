@@ -14,7 +14,7 @@ from qtpy.QtWidgets import (
     QLabel,
     QFileDialog,
     QHBoxLayout,
-    QFrame
+    QFrame,
 )
 from qtpy.QtCore import Qt
 import napari
@@ -40,14 +40,16 @@ DEFUALT_CONFIG = [
 
 def get_text_color(background_color: str) -> str:
     """
-    returns black or white as hex string 
+    returns black or white as hex string
     depending on what works better with the backround
     """
     # same function as dinstinctipy
     white = "#ffffff"
     black = "#000000"
     red, green, blue, _ = to_rgba_array(background_color)[0]
-    text_color = white if(red * 0.299 + green * 0.587 + blue * 0.114) < 0.6 else black
+    text_color = (
+        white if (red * 0.299 + green * 0.587 + blue * 0.114) < 0.6 else black
+    )
     return text_color
 
 
@@ -94,7 +96,9 @@ class CellTypeGuiAndData:
         color = to_hex(self.layer.current_edge_color)
         text_color = get_text_color(color)
         # hover_color is half way between text color and hover_color
-        hover_color_rgb = (to_rgba_array(text_color)[0] + to_rgba_array(color)[0]) / 2
+        hover_color_rgb = (
+            to_rgba_array(text_color)[0] + to_rgba_array(color)[0]
+        ) / 2
         style_sheet = f"QPushButton{{background-color: {color}; color: {text_color};}} QPushButton:hover{{background-color: {to_hex(hover_color_rgb)}}}"
         self.button.setStyleSheet(style_sheet)
         # updates all edge_colors to current_edge_color
@@ -287,9 +291,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         # update button when name changes
         point_layer.events.name.connect(out.update_button_gui)
         # update color when color changes
-        point_layer.events.current_edge_color.connect(
-            self.update_gui
-        )
+        point_layer.events.current_edge_color.connect(self.update_gui)
         out.update_button_gui()
         return out
 
@@ -302,12 +304,15 @@ class Count3D(QWidget):  # pylint: disable=R0902
         self.pointer_type_state = state
         self.update_pointer_state_label()
 
-
     def update_pointer_state_label(self):
-        self.pointer_type_state_label.setText(self.pointer_type_state.layer.name)
+        self.pointer_type_state_label.setText(
+            self.pointer_type_state.layer.name
+        )
         color = to_hex(self.pointer_type_state.layer.current_edge_color)
         text_color = get_text_color(color)
-        style_sheet = f"background-color: {color}; color: {text_color}; font-size: 20px"
+        style_sheet = (
+            f"background-color: {color}; color: {text_color}; font-size: 20px"
+        )
         self.pointer_type_state_label.setStyleSheet(style_sheet)
 
     def _undo(self, opt=None):
@@ -453,7 +458,6 @@ class Count3D(QWidget):  # pylint: disable=R0902
         self.update_pointer_state_label()
 
 
-
 # Uses the `autogenerate: true` flag in the plugin manifest
 # to indicate it should be wrapped as a magicgui to autogenerate
 # a widget.
@@ -471,8 +475,15 @@ def reconstruct_selected(
         xcoord, ycoord, zcoord = point.astype(int)
         neuron_label = labels_layer.data[xcoord, ycoord, zcoord]
         if neuron_label == 0:
-            print(f"skipping a point outside a lable at {[xcoord, ycoord, zcoord]}")
+            print(
+                f"skipping a point outside a lable at {[xcoord, ycoord, zcoord]}"
+            )
             continue
         reconstruction_data[labels_layer.data == neuron_label] = 1
-    viewer.add_image(reconstruction_data, name=f"{name} reconstruction", blending="additive", rendering="iso")
+    viewer.add_image(
+        reconstruction_data,
+        name=f"{name} reconstruction",
+        blending="additive",
+        rendering="iso",
+    )
     return reconstruction_data
