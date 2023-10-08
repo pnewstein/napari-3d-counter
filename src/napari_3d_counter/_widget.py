@@ -80,11 +80,11 @@ class CellTypeGuiAndData:
                 [current_color] * n_edge_colors
             )
 
-    def get_calculated_config(self) -> CellTypeConfigNotOptional:
+    def get_calculated_config(self) -> CellTypeConfig:
         """
         returns the current configuration of the channel
         """
-        return CellTypeConfigNotOptional(name=self.layer.name, color=to_hex(self.layer.current_edge_color, keep_alpha=True), keybind=self.keybind)
+        return CellTypeConfig(name=self.layer.name, color=to_hex(self.layer.current_edge_color, keep_alpha=True), keybind=self.keybind)
 
     def config_python_code(self):
         """
