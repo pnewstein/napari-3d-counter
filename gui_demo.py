@@ -5,6 +5,7 @@ Launches napari with some nice sample data for testing the gui
 import os
 from pathlib import Path
 from typing import Tuple
+import sys
 
 import napari
 import numpy as np
@@ -34,6 +35,9 @@ image = place_ball(image, (13, 150, 150))
 image = gaussian(image, sigma=1)
 viewer.add_image(image, colormap="magenta", name="Cell 2", blending="additive")
 
+if len(sys.argv) == 2:
+    from napari_3d_counter import Count3D, CellTypeConfig
+    viewer.window.add_dock_widget(Count3D(viewer, [CellTypeConfig("Counter 1")]))
 
 # start wiget
 # add green cells

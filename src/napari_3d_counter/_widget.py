@@ -168,7 +168,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         for cell_type in self.cell_type_gui_and_data:
             self.layout().addWidget(cell_type.button)
         # handle undo button
-        undo_button = QPushButton("undo (u)")
+        undo_button = QPushButton("Undo (u)")
         undo_button.clicked.connect(self.undo)
         self.viewer.bind_key(key="u", func=self.undo, overwrite=True)
         self.layout().addWidget(undo_button)
