@@ -9,6 +9,8 @@
 
 A simple plugin for counting objects in 3D images
 
+![small](https://github.com/pnewstein/napari-3d-counter/assets/30813691/9d524c31-f23b-4b34-bcb6-ec3bb415cdae)
+
 ----------------------------------
 
 This [napari] plugin was generated with [Cookiecutter] using [@napari]'s [cookiecutter-napari-plugin] template.
@@ -50,6 +52,11 @@ You can add a cell of the currently selected cell type by clicking on the viewer
 
 The counter on the current cell type's button will be incremented
 
+
+
+https://github.com/pnewstein/napari-3d-counter/assets/30813691/745d495e-1d18-43dd-aa5e-e9ecd835cdae
+
+
 ### Changing cell type
 
 You can change the currently selected cell type by clicking on that cell type's
@@ -57,10 +64,18 @@ button. This change will be reflected in the GUI. Additionally, the keyboard
 shortcut for that cell type can be used. Keyboard shortcuts are listed on the
 button, and are "q", "w", "e", "r", "t", "y" by default
 
+
+https://github.com/pnewstein/napari-3d-counter/assets/30813691/844d04ce-2795-4226-a98b-d5fe5a0b131e
+
+
 ### Undo last added cell
 
 The undo button (shortcut u) will remove last added cell, regardless of
 cell type
+
+
+https://github.com/pnewstein/napari-3d-counter/assets/30813691/c04ca5e3-9f48-4dd5-89e5-a9866b353e03
+
 
 ### Remove a particular cell
 
@@ -71,10 +86,18 @@ delete, then use `Delete selected points` to delete those points
 This change will be reflected in the counts.
 
 
+https://github.com/pnewstein/napari-3d-counter/assets/30813691/d0787cba-9b23-46d5-9cd3-21a4ad73460a
+
+
+
 ### Change appearance of a cell type
 
 Changes to the name or edge color of a points layer will be reflected in the
 previously added points, as well as the GUI.
+
+
+https://github.com/pnewstein/napari-3d-counter/assets/30813691/6c495270-d4c4-473e-9091-8d2e0f8e2764
+
 
 ### Save configuration
 
@@ -82,14 +105,26 @@ Use the `Make launch_cell_count.py` button to create a python script that will
 launch napari with 3DCounter added to the dock and current cell type appearances
 already loaded
 
+
+https://github.com/pnewstein/napari-3d-counter/assets/30813691/3448652d-3064-4900-8bbe-e88d75667108
+
+
 ### Save cells
 
 Use the "Save cells" button to save the cell coordinates for all layers into a
 csv file
 
+
+https://github.com/pnewstein/napari-3d-counter/assets/30813691/38b30f2a-cc83-46c2-8b19-4d44715c07c5
+
+
 ### Load cells
 
 Use the "Load cells" button to load the cells from a csv file into new layers
+
+
+https://github.com/pnewstein/napari-3d-counter/assets/30813691/7df74688-85b1-4b61-aa51-dab179763832
+
 
 ### Launch with saved configuration
 
