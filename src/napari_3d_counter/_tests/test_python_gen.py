@@ -4,7 +4,10 @@ Tests the code that generates python
 
 from matplotlib.colors import to_rgba
 
-from napari_3d_counter import Count3D, CellTypeConfig #pylint: disable: unused-import
+from napari_3d_counter import (
+    Count3D,
+    CellTypeConfig,
+)  # pylint: disable: unused-import
 
 
 def test_code_gen_name(make_napari_viewer):

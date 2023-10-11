@@ -21,6 +21,8 @@ DEFAULT_COLOR_SEQUENCE = [
     "#00ff00ff",  # g
     "#ffffffff",  # w
 ]
+DEFAULT_OUTLINE_SIZE = 10
+DEFAULT_OUT_OF_SLICE_SIZE = 2
 
 
 @dataclass(frozen=True)
@@ -35,6 +37,10 @@ class CellTypeConfig:
     "The edgecolor of the points"
     keybind: Optional[str] = None
     "the keyboard binding to switch to this celltype"
+    outline_size: Optional[int] = None
+    "The size of the circle around the cell"
+    out_of_slice_point_size: Optional[int] = None
+    "The size of the out of slice point"
 
 
 @dataclass(frozen=True)
@@ -49,6 +55,10 @@ class CellTypeConfigNotOptional:
     "The edgecolor of the points as a hex color"
     keybind: str
     "the keyboard binding to switch to this celltype"
+    outline_size: int
+    "The size of the circle around the cell"
+    out_of_slice_point_size: int
+    "The size of the out of slice point"
 
 
 def fill_in_defaults(
@@ -114,7 +124,28 @@ def process_cell_type_config(
         while f"{name} [{name_int}]" in unique_names:
             name_int += 1
         unique_names.append(f"{name} [{name_int}]")
+    outline_sizes = [
+        DEFAULT_OUTLINE_SIZE if c.outline_size is None else c.outline_size
+        for c in cell_type_configs
+    ]
+    out_of_slice_sizes = [
+        DEFAULT_OUT_OF_SLICE_SIZE
+        if c.out_of_slice_point_size is None
+        else c.out_of_slice_point_size
+        for c in cell_type_configs
+    ]
+    # ensure that all out_of_slice_sizes are the same
+    if any(s != out_of_slice_sizes[0] for s in out_of_slice_sizes):
+        raise ValueError("All out of slice points sizes must be the same")
     return [
-        CellTypeConfigNotOptional(keybind=keybind, name=name, color=color)
-        for keybind, name, color in zip(keymaps, unique_names, colors)
+        CellTypeConfigNotOptional(
+            keybind=keybind,
+            name=name,
+            color=color,
+            outline_size=outline_size,
+            out_of_slice_point_size=out_of_slice_size,
+        )
+        for keybind, name, color, outline_size, out_of_slice_size in zip(
+            keymaps, unique_names, colors, outline_sizes, out_of_slice_sizes
+        )
     ]

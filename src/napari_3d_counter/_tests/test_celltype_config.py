@@ -2,6 +2,8 @@
 tests configuration of celltypes through python
 """
 
+import pytest
+
 from napari_3d_counter import celltype_config as cc
 
 
@@ -57,15 +59,28 @@ def test_process_cell_type_config():
             keybind=cc.DEFAULT_KEYMAP_SEQUENCE[1],
             name="Celltype 1",
             color=cc.DEFAULT_COLOR_SEQUENCE[1],
+            outline_size=cc.DEFAULT_OUTLINE_SIZE,
+            out_of_slice_point_size=cc.DEFAULT_OUT_OF_SLICE_SIZE,
         ),
         cc.CellTypeConfigNotOptional(
             keybind=cc.DEFAULT_KEYMAP_SEQUENCE[0],
             name="Cell1",
             color=cc.DEFAULT_COLOR_SEQUENCE[0],
+            outline_size=cc.DEFAULT_OUTLINE_SIZE,
+            out_of_slice_point_size=cc.DEFAULT_OUT_OF_SLICE_SIZE,
         ),
     ]
     assert out == expected
 
 
+def test_mismatch():
+    ctc = [
+        cc.CellTypeConfig(out_of_slice_point_size=100),
+        cc.CellTypeConfig(out_of_slice_point_size=10),
+    ]
+    with pytest.raises(ValueError):
+        cc.process_cell_type_config(ctc)
+
+
 if __name__ == "__main__":
-    test_name_conflict()
+    test_mismatch()

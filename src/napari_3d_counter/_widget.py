@@ -12,8 +12,8 @@ import numpy as np
 import pandas as pd
 from matplotlib.colors import to_hex, to_rgba_array
 from napari.utils.events import Event
-from qtpy.QtCore import Qt # type: ignore
-from qtpy.QtWidgets import ( # pylint: disable=no-name-in-module
+from qtpy.QtCore import Qt  # type: ignore
+from qtpy.QtWidgets import (  # pylint: disable=no-name-in-module
     QFileDialog,
     QFrame,
     QHBoxLayout,
@@ -50,6 +50,7 @@ def get_text_color(background_color: str) -> str:
         white if (red * 0.299 + green * 0.587 + blue * 0.114) < 0.6 else black
     )
     return text_color
+
 
 # This class is necessary because napari keybindings need a __name__
 @dataclass
@@ -144,7 +145,9 @@ class Count3D(QWidget):  # pylint: disable=R0902
         self.currently_adding_point = False
         # add out of slice markers
         self.out_of_slice_points = self.viewer.add_points(
-            ndim=2, size=2, name="out of slice"
+            ndim=2,
+            size=cell_type_config[0].out_of_slice_point_size,
+            name="out of slice",
         )
         # set up cell type points layers
         self.cell_type_gui_and_data = [
@@ -152,7 +155,11 @@ class Count3D(QWidget):  # pylint: disable=R0902
             for state in self.initial_config
         ]
         # initialize the pointer points
-        self.pointer = self.viewer.add_points(ndim=3, name="Point adder")
+        self.pointer = self.viewer.add_points(
+            ndim=3,
+            name="Point adder",
+            size=cell_type_config[0].out_of_slice_point_size,
+        )
         self.pointer.mode = "add"
         # make new_pointer_point run each time data is changed
         self.pointer.events.data.connect(self.new_pointer_point)
@@ -197,7 +204,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         to self.out_of_slice_points
         """
         datas = [
-            cell_type.layer.data[:, 1:] # make 2d by taking last 2 coords
+            cell_type.layer.data[:, 1:]  # make 2d by taking last 2 coords
             for cell_type in self.cell_type_gui_and_data
         ]
         data = np.vstack(datas)
@@ -267,6 +274,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
             ndim=3,
             name=config.name,
             edge_color=config.color,
+            size=config.outline_size,
             face_color="#00000000",
             out_of_slice_display=True,
         )
@@ -457,7 +465,6 @@ class Count3D(QWidget):  # pylint: disable=R0902
             self.layout().insertWidget(layout_index + 1, cell_type.button)
         self.update_out_of_slice()
         self.update_gui()
-
 
 
 # Uses the `autogenerate: true` flag in the plugin manifest
