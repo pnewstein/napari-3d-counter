@@ -154,7 +154,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         # add out of slice markers
         self.out_of_slice_points = self.viewer.add_points(
             ndim=2,
-            size=cell_type_config[0].out_of_slice_point_size,
+            size=self.initial_config[0].out_of_slice_point_size,
             name="out of slice",
         )
         # set up cell type points layers
