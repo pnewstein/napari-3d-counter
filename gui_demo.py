@@ -16,9 +16,12 @@ temp_path = Path("/tmp/napari-3d-counter")
 temp_path.mkdir(exist_ok=True)
 os.chdir(temp_path)
 
-def place_ball(image: np.ndarray, position: Tuple[int, int, int], radius=5) -> np.ndarray:
+
+def place_ball(
+    image: np.ndarray, position: Tuple[int, int, int], radius=5
+) -> np.ndarray:
     ball_z, ball_x, ball_y = np.where(ball(radius))
-    image[ball_z+position[0], ball_x+position[1], ball_y+position[2]] = 1
+    image[ball_z + position[0], ball_x + position[1], ball_y + position[2]] = 1
     return image
 
 
@@ -37,7 +40,10 @@ viewer.add_image(image, colormap="magenta", name="Cell 2", blending="additive")
 
 if len(sys.argv) == 2:
     from napari_3d_counter import Count3D, CellTypeConfig
-    viewer.window.add_dock_widget(Count3D(viewer, [CellTypeConfig("Counter 1")]))
+
+    viewer.window.add_dock_widget(
+        Count3D(viewer, [CellTypeConfig("Counter 1")])
+    )
 
 # start wiget
 # add green cells
@@ -50,4 +56,3 @@ if len(sys.argv) == 2:
 # save python
 # Save cells
 # load cells
-
