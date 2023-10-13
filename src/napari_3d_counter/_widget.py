@@ -106,7 +106,9 @@ class CellTypeGuiAndData:
         if n_edge_colors:
             self.layer.edge_color = np.vstack([current_color] * n_edge_colors)
 
-    def update_attr(self, attr: Literal["symbol", "size", "face_color", "edge_width"]):
+    def update_attr(
+        self, attr: Literal["symbol", "size", "face_color", "edge_width"]
+    ):
         """
         updates the size of the cell to the current size
         """
@@ -307,10 +309,18 @@ class Count3D(QWidget):  # pylint: disable=R0902
         # update GUI when color changes
         point_layer.events.current_edge_color.connect(self.update_gui)
         # Update rest of the points when face_color, size, symbol, edge_width changes
-        point_layer.events.current_face_color.connect(partial(out.update_attr, "face_color"))
-        point_layer.events.current_size.connect(partial(out.update_attr, "size"))
-        point_layer.events.current_symbol.connect(partial(out.update_attr, "symbol"))
-        point_layer.events.current_edge_width.connect(partial(out.update_attr, "edge_width"))
+        point_layer.events.current_face_color.connect(
+            partial(out.update_attr, "face_color")
+        )
+        point_layer.events.current_size.connect(
+            partial(out.update_attr, "size")
+        )
+        point_layer.events.current_symbol.connect(
+            partial(out.update_attr, "symbol")
+        )
+        point_layer.events.current_edge_width.connect(
+            partial(out.update_attr, "edge_width")
+        )
         return out
 
     def change_state_to(self, state: CellTypeGuiAndData, *args, **kwargs):
