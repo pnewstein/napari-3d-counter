@@ -5,7 +5,7 @@ implements the counting interface and the reconstruction plugin
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Literal
 
 import napari
 import numpy as np
@@ -105,6 +105,14 @@ class CellTypeGuiAndData:
         n_edge_colors = self.layer.edge_color.shape[0]
         if n_edge_colors:
             self.layer.edge_color = np.vstack([current_color] * n_edge_colors)
+
+    def update_attr(self, attr: Literal["symbol", "size", "face_color", "edge_width"]):
+        """
+        updates the size of the cell to the current size
+        """
+        current = getattr(self.layer, f"current_{attr}")
+        n_points = self.layer.data.shape[0]
+        setattr(self.layer, attr, np.array([current] * n_points))
 
     def get_calculated_config(self) -> CellTypeConfig:
         """
@@ -298,6 +306,11 @@ class Count3D(QWidget):  # pylint: disable=R0902
         point_layer.events.name.connect(self.update_gui)
         # update GUI when color changes
         point_layer.events.current_edge_color.connect(self.update_gui)
+        # Update rest of the points when face_color, size, symbol, edge_width changes
+        point_layer.events.current_face_color.connect(partial(out.update_attr, "face_color"))
+        point_layer.events.current_size.connect(partial(out.update_attr, "size"))
+        point_layer.events.current_symbol.connect(partial(out.update_attr, "symbol"))
+        point_layer.events.current_edge_width.connect(partial(out.update_attr, "edge_width"))
         return out
 
     def change_state_to(self, state: CellTypeGuiAndData, *args, **kwargs):

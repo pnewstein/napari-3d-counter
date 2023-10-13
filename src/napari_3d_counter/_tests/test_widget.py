@@ -8,6 +8,8 @@ from matplotlib.colors import to_hex, to_rgba_array
 from napari_3d_counter import CellTypeConfig, Count3D
 from napari_3d_counter.celltype_config import DEFAULT_COLOR_SEQUENCE
 
+import napari
+
 
 @dataclass
 class Event:
@@ -228,6 +230,33 @@ def test_load_save_loop(make_napari_viewer):
     assert cell_type.layer.data.shape[0] == 1
 
 
+def test_change_symbol(make_napari_viewer):
+    viewer = make_napari_viewer()
+    my_widget = Count3D(viewer, [CellTypeConfig(name="test_name")])
+    my_widget.new_pointer_point(Event([np.array([1,2,1])]))
+    cell_type = my_widget.cell_type_gui_and_data[0]
+    star = napari.layers.points._points_constants.Symbol.STAR
+    cell_type.layer.current_symbol = star
+    assert cell_type.layer.symbol[0] == star
+
+
+def test_change_size(make_napari_viewer):
+    viewer = make_napari_viewer()
+    my_widget = Count3D(viewer, [CellTypeConfig(name="test_name")])
+    my_widget.new_pointer_point(Event([np.array([1,2,1])]))
+    cell_type = my_widget.cell_type_gui_and_data[0]
+    cell_type.layer.current_size = 100
+    assert cell_type.layer.size[0] == 100
+
+def test_change_face_color(make_napari_viewer):
+    viewer = make_napari_viewer()
+    my_widget = Count3D(viewer, [CellTypeConfig(name="test_name")])
+    my_widget.new_pointer_point(Event([np.array([1,2,1])]))
+    cell_type = my_widget.cell_type_gui_and_data[0]
+    color = "#00FF00"
+    cell_type.layer.current_face_color = color
+    assert np.all(cell_type.layer.face_color[0] == np.array([0., 1., 0., 1.,]))
+
 # def test_example_magic_widget(make_napari_viewer, capsys):
 # viewer = make_napari_viewer()
 # layer = viewer.add_image(np.random.random((100, 100)))
@@ -243,6 +272,4 @@ def test_load_save_loop(make_napari_viewer):
 # assert captured.out == f"you have selected {layer}\n"
 
 if __name__ == "__main__":
-    import napari
-
-    test_color_conflict(napari.viewer.Viewer)
+    test_change_face_color(napari.viewer.Viewer)
