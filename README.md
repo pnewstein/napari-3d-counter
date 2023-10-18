@@ -90,7 +90,11 @@ https://github.com/pnewstein/napari-3d-counter/assets/30813691/d0787cba-9b23-46d
 ### Change appearance of a cell type
 
 Changes to the name or edge color of a points layer will be reflected in the
-previously added points, as well as the GUI.
+previously added points, as well as the GUI. Features that are editable in this way include:
+    - face color
+    - edge color
+    - symbol
+    - size
 
 
 https://github.com/pnewstein/napari-3d-counter/assets/30813691/6c495270-d4c4-473e-9091-8d2e0f8e2764
