@@ -23,10 +23,13 @@ DEFAULT_COLOR_SEQUENCE = [
 ]
 DEFAULT_OUTLINE_SIZE = 10
 DEFAULT_OUT_OF_SLICE_SIZE = 2
+DEFAULT_FACE_COLOR = "#ffffff00"
+DEFAULT_SYMBOL = "o"
+DEFAULT_EDGE_WIDTH = 0.05
 
 
 @dataclass(frozen=True)
-class CellTypeConfig:
+class CellTypeConfig:  # pylint: disable=too-many-instance-attributes
     """
     Data type for specifying configuration of celltype states
     """
@@ -37,14 +40,20 @@ class CellTypeConfig:
     "The edgecolor of the points"
     keybind: Optional[str] = None
     "the keyboard binding to switch to this celltype"
-    outline_size: Optional[int] = None
+    outline_size: Optional[float] = None
     "The size of the circle around the cell"
     out_of_slice_point_size: Optional[int] = None
     "The size of the out of slice point"
+    face_color: Optional[MatplotlibColor] = None
+    "The filled in color of the point"
+    symbol: Optional[str] = None
+    "the symbol to use for the points"
+    edge_width: Optional[float] = None
+    "the width of the outline of the point"
 
 
 @dataclass(frozen=True)
-class CellTypeConfigNotOptional:
+class CellTypeConfigNotOptional:  # pylint: disable=too-many-instance-attributes
     """
     Data type for specifying configuration of celltype states
     """
@@ -55,10 +64,16 @@ class CellTypeConfigNotOptional:
     "The edgecolor of the points as a hex color"
     keybind: str
     "the keyboard binding to switch to this celltype"
-    outline_size: int
+    outline_size: float
     "The size of the circle around the cell"
-    out_of_slice_point_size: int
+    out_of_slice_point_size: float
     "The size of the out of slice point"
+    face_color: MatplotlibColor
+    "The filled in color of the point"
+    symbol: str
+    "the symbol to use for the points"
+    edge_width: float
+    "the width of the outline of the point"
 
 
 def fill_in_defaults(
@@ -134,6 +149,18 @@ def process_cell_type_config(
         else c.out_of_slice_point_size
         for c in cell_type_configs
     ]
+    symbols = [
+        DEFAULT_SYMBOL if c.symbol is None else c.symbol
+        for c in cell_type_configs
+    ]
+    face_colors = [
+        DEFAULT_FACE_COLOR if c.face_color is None else c.face_color
+        for c in cell_type_configs
+    ]
+    edge_widths = [
+        DEFAULT_EDGE_WIDTH if c.edge_width is None else c.edge_width
+        for c in cell_type_configs
+    ]
     # ensure that all out_of_slice_sizes are the same
     if any(s != out_of_slice_sizes[0] for s in out_of_slice_sizes):
         raise ValueError("All out of slice points sizes must be the same")
@@ -144,8 +171,18 @@ def process_cell_type_config(
             color=color,
             outline_size=outline_size,
             out_of_slice_point_size=out_of_slice_size,
+            symbol=symbol,
+            face_color=face_color,
+            edge_width=edge_width,
         )
-        for keybind, name, color, outline_size, out_of_slice_size in zip(
-            keymaps, unique_names, colors, outline_sizes, out_of_slice_sizes
+        for keybind, name, color, outline_size, out_of_slice_size, symbol, face_color, edge_width in zip(
+            keymaps,
+            unique_names,
+            colors,
+            outline_sizes,
+            out_of_slice_sizes,
+            symbols,
+            face_colors,
+            edge_widths,
         )
     ]

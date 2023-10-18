@@ -285,8 +285,10 @@ class Count3D(QWidget):  # pylint: disable=R0902
             name=config.name,
             edge_color=config.color,
             size=config.outline_size,
-            face_color="#00000000",
             out_of_slice_display=True,
+            symbol=config.symbol,
+            face_color=config.face_color,
+            edge_width=config.edge_width,
         )
         point_layer.events.data.connect(self.handle_data_changed)
         btn = QPushButton()
