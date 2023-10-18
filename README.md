@@ -30,9 +30,6 @@ You cannot install `napari-3d-counter` via [pip]:
     pip install napari-3d-counter
 
 
-Doesn't work yet
-
-
 To install latest development version :
 
     pip install git+https://github.com/pnewstein/napari-3d-counter.git
