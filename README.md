@@ -25,7 +25,7 @@ https://napari.org/stable/plugins/index.html
 
 ## Installation
 
-You cannot install `napari-3d-counter` via [pip]:
+You can install `napari-3d-counter` via [pip]:
 
     pip install napari-3d-counter
 
