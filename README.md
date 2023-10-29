@@ -29,6 +29,10 @@ You can install `napari-3d-counter` via [pip]:
 
     pip install napari-3d-counter
 
+Or you can install `napari-3d-counter` via conda:
+
+    conda install -c conda-forge napari-3d-counter
+
 
 To install latest development version :
 
