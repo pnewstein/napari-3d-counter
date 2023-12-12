@@ -68,6 +68,10 @@ class NamedPartial:
     def __call__(self, *args, **kwargs):
         return self.func.__call__(*args, **kwargs)
 
+    def __hash__(self, *args, **kwargs):
+        # hash function is necessary in some versions of napari
+        return self.func.__hash__(*args, **kwargs)
+
 
 @dataclass
 class CellTypeGuiAndData:
