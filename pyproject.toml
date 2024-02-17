@@ -55,4 +55,3 @@ exclude = [
 ]
 
 target-version = "py38"
-fix = true
