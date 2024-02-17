@@ -52,11 +52,13 @@ def test_add_point(make_napari_viewer):
     # create our widget, passing in the viewer
     my_widget = Count3D(viewer)
     event = Event()
+    default_celltype = my_widget.cell_type_gui_and_data[0]
     event.value = [np.array([1, 1, 1])]
     my_widget.new_pointer_point(event)
+    print(default_celltype.layer.data.shape)
+    assert default_celltype.layer.data.shape == (1, 3)
     event.value = [np.array([2, 2, 2])]
     my_widget.new_pointer_point(event)
-    default_celltype = my_widget.cell_type_gui_and_data[0]
     assert default_celltype.layer.data.shape == (2, 3)
 
 
@@ -81,6 +83,14 @@ def test_undo(make_napari_viewer):
     my_widget.undo()
     default_celltype = my_widget.cell_type_gui_and_data[0]
     assert len(default_celltype.layer.data) == 0
+
+def test_manual_add(make_napari_viewer):
+    viewer = make_napari_viewer()
+    # create our widget, passing in the viewer
+    my_widget = Count3D(viewer, cell_type_config=[CellTypeConfig("name")])
+    viewer.layers["name"].add([1, 2, 3])
+    assert viewer.layers["name"].data.shape == (1, 3)
+    assert len(my_widget.undo_stack) == 1
 
 
 def test_undo_from_manual_add(make_napari_viewer):
@@ -284,4 +294,4 @@ def test_change_face_color(make_napari_viewer):
 # assert captured.out == f"you have selected {layer}\n"
 
 if __name__ == "__main__":
-    test_change_face_color(napari.viewer.Viewer)
+    test_add_point(napari.viewer.Viewer)
