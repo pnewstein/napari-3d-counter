@@ -144,9 +144,11 @@ def process_cell_type_config(
         for c in cell_type_configs
     ]
     out_of_slice_sizes = [
-        DEFAULT_OUT_OF_SLICE_SIZE
-        if c.out_of_slice_point_size is None
-        else c.out_of_slice_point_size
+        (
+            DEFAULT_OUT_OF_SLICE_SIZE
+            if c.out_of_slice_point_size is None
+            else c.out_of_slice_point_size
+        )
         for c in cell_type_configs
     ]
     symbols = [
