@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from typing import List, Optional, Literal
+from threading import Lock
 
 import napari
 import numpy as np
@@ -82,11 +83,15 @@ class CellTypeGuiAndData:
     keybind: str
     button: QPushButton
     layer: napari.layers.Points
+    gui_lock: Lock
 
     def update_button_gui(self):
         """
         Updates the button with current name, and number of cells
         """
+        # do nothing if gui_lock is locked
+        if self.gui_lock.locked():
+            return
         # update the button
         keybind_str = f" ({self.keybind})" if self.keybind else ""
         button_text = (
@@ -156,7 +161,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         # a stack containing points with added layers
         self.undo_stack: List[CellTypeGuiAndData] = []
         # prevents unwanted animations
-        self.currently_adding_point = False
+        self.gui_lock = Lock()
         # add out of slice markers
         self.out_of_slice_points = self.viewer.add_points(
             ndim=2,
@@ -230,7 +235,14 @@ class Count3D(QWidget):  # pylint: disable=R0902
         """
         Handle adding point specific to the layer
         """
-        if self.currently_adding_point:
+        # try:
+        # event.value[0]
+        # except IndexError:
+        # # received an empty event
+        # return
+        if self.gui_lock.locked():
+            return
+        if event.action == "added":
             return
         # add to out_of_slice_points
         self.update_out_of_slice()
@@ -251,20 +263,28 @@ class Count3D(QWidget):  # pylint: disable=R0902
         Handle a new point being added to the pointer
         by adding to the correct sub-layer
         """
+        if event.action == "adding":
+            return
+        if self.gui_lock.locked():
+            return
         pointer_coords = event.value
+        assert self.gui_lock.acquire(blocking=False)
         self.pointer.data = []
+        self.gui_lock.release()
         current_cell_type = self.pointer_type_state
         # dispatch point to appropriate layer
         # implicitly calls self.handle_data_changed
         current_point_layer = current_cell_type.layer
+        # import pudb; pudb.set_trace()
         current_point_layer.add(coords=pointer_coords)
         # hack to unselect last added point
         # prevent layer specific handlers from updating
-        self.currently_adding_point = True
         # add and remove point
+        assert self.gui_lock.acquire(blocking=False)
         current_point_layer.add(coords=pointer_coords)
         current_point_layer.remove_selected()
-        self.currently_adding_point = False
+        self.gui_lock.release()
+        self.update_out_of_slice()
 
     def update_gui(self):
         """
@@ -297,7 +317,10 @@ class Count3D(QWidget):  # pylint: disable=R0902
         point_layer.events.data.connect(self.handle_data_changed)
         btn = QPushButton()
         out = CellTypeGuiAndData(
-            keybind=config.keybind, button=btn, layer=point_layer
+            keybind=config.keybind,
+            button=btn,
+            layer=point_layer,
+            gui_lock=self.gui_lock,
         )
         # set up event handler that changes state to this
         change_state_fun = NamedPartial(
@@ -366,7 +389,9 @@ class Count3D(QWidget):  # pylint: disable=R0902
             return
         cell_type = self.undo_stack.pop()
         point_layer = cell_type.layer
+        assert self.gui_lock.acquire(blocking=True)
         point_layer.data = point_layer.data[:-1]
+        self.gui_lock.release()
         self.update_out_of_slice()
         # update button
         cell_type.update_button_gui()

@@ -7,6 +7,7 @@ from matplotlib.colors import to_hex, to_rgba_array
 
 from napari_3d_counter import CellTypeConfig, Count3D
 from napari_3d_counter.celltype_config import DEFAULT_COLOR_SEQUENCE
+from napari_3d_counter._widget import CellTypeGuiAndData
 
 import napari
 
@@ -14,6 +15,14 @@ import napari
 @dataclass
 class Event:
     value: Optional[List[np.ndarray]] = None
+    action: Optional[str] = "added"
+
+
+def total_n_points(cell_type_gui_and_data: list[CellTypeGuiAndData]):
+    sum = 0
+    for cell_type in cell_type_gui_and_data:
+        sum = sum + cell_type.layer.data.shape[0]
+    return sum
 
 
 # make_napari_viewer is a pytest fixture that returns a napari viewer object
@@ -84,6 +93,7 @@ def test_undo(make_napari_viewer):
     default_celltype = my_widget.cell_type_gui_and_data[0]
     assert len(default_celltype.layer.data) == 0
 
+
 def test_manual_add(make_napari_viewer):
     viewer = make_napari_viewer()
     # create our widget, passing in the viewer
@@ -100,9 +110,83 @@ def test_undo_from_manual_add(make_napari_viewer):
     my_widget = Count3D(viewer, cell_type_config=[CellTypeConfig("name")])
     assert len(my_widget.undo_stack) == 0
     viewer.layers["name"].add([1, 2, 3])
-    # assert len(my_widget.undo_stack) == 1
+    assert len(my_widget.undo_stack) == 1
+    print("undoing")
     my_widget.undo()
     assert len(my_widget.undo_stack) == 0
+
+
+def test_undo_across_states_again(make_napari_viewer):
+    # make viewer and add an image layer using our fixture
+    viewer = make_napari_viewer()
+    viewer.add_image(np.random.random((100, 100, 100)))
+    # create our widget, passing in the viewer
+    my_widget = Count3D(
+        viewer,
+        cell_type_config=[CellTypeConfig("name"), CellTypeConfig("two")],
+    )
+    event = Event()
+    my_widget.change_state_to(my_widget.cell_type_gui_and_data[0])
+    assert (
+        total_n_points(my_widget.cell_type_gui_and_data)
+        == 0
+        == len(my_widget.undo_stack)
+    )
+    event.value = [np.array([1, 1, 1])]
+    my_widget.new_pointer_point(event)
+    assert (
+        total_n_points(my_widget.cell_type_gui_and_data)
+        == 1
+        == len(my_widget.undo_stack)
+    )
+    my_widget.change_state_to(my_widget.cell_type_gui_and_data[1])
+    event.value = [np.array([2, 2, 2])]
+    my_widget.new_pointer_point(event)
+    assert (
+        total_n_points(my_widget.cell_type_gui_and_data)
+        == 2
+        == len(my_widget.undo_stack)
+    )
+    my_widget.change_state_to(my_widget.cell_type_gui_and_data[1])
+    event.value = [np.array([1, 1, 1])]
+    my_widget.new_pointer_point(event)
+    assert (
+        total_n_points(my_widget.cell_type_gui_and_data)
+        == 3
+        == len(my_widget.undo_stack)
+    )
+    my_widget.change_state_to(my_widget.cell_type_gui_and_data[1])
+    event.value = [np.array([2, 2, 2])]
+    my_widget.new_pointer_point(event)
+    assert (
+        total_n_points(my_widget.cell_type_gui_and_data)
+        == 4
+        == len(my_widget.undo_stack)
+    )
+    my_widget.undo()
+    assert (
+        total_n_points(my_widget.cell_type_gui_and_data)
+        == 3
+        == len(my_widget.undo_stack)
+    )
+    my_widget.undo()
+    assert (
+        total_n_points(my_widget.cell_type_gui_and_data)
+        == 2
+        == len(my_widget.undo_stack)
+    )
+    my_widget.undo()
+    assert (
+        total_n_points(my_widget.cell_type_gui_and_data)
+        == 1
+        == len(my_widget.undo_stack)
+    )
+    my_widget.undo()
+    assert (
+        total_n_points(my_widget.cell_type_gui_and_data)
+        == 0
+        == len(my_widget.undo_stack)
+    )
 
 
 def test_undo_across_states(make_napari_viewer):
@@ -111,23 +195,51 @@ def test_undo_across_states(make_napari_viewer):
     viewer.add_image(np.random.random((100, 100, 100)))
 
     # create our widget, passing in the viewer
-    my_widget = Count3D(viewer)
+
+    my_widget = Count3D(
+        viewer,
+        cell_type_config=[CellTypeConfig("name"), CellTypeConfig("two")],
+    )
     event = Event()
+    my_widget.change_state_to(my_widget.cell_type_gui_and_data[0])
+    assert total_n_points(my_widget.cell_type_gui_and_data) == 0
     event.value = [np.array([1, 1, 1])]
     my_widget.new_pointer_point(event)
+    assert total_n_points(my_widget.cell_type_gui_and_data) == 1
+    my_widget.change_state_to(my_widget.cell_type_gui_and_data[1])
     event.value = [np.array([2, 2, 2])]
     my_widget.new_pointer_point(event)
-    my_widget.change_state_to(my_widget.cell_type_gui_and_data[1])
+    assert total_n_points(my_widget.cell_type_gui_and_data) == 2
+    my_widget.change_state_to(my_widget.cell_type_gui_and_data[0])
     my_widget.new_pointer_point(event)
+    assert total_n_points(my_widget.cell_type_gui_and_data) == 3
     event.value = [np.array([2, 2, 2])]
     my_widget.undo()  # other state
+    assert total_n_points(my_widget.cell_type_gui_and_data) == 2
     my_widget.undo()  # current state state
+    assert total_n_points(my_widget.cell_type_gui_and_data) == 1
     default_celltype = my_widget.cell_type_gui_and_data[0]
-    assert len(default_celltype.layer.data) == 1
-    # saturate undos without errors
     my_widget.undo()
+    assert total_n_points(my_widget.cell_type_gui_and_data) == 0
+
+
+def test_undo_from_manual_add_across_states(make_napari_viewer):
+    # make viewer and add an image layer using our fixture
+    viewer = make_napari_viewer()
+    # create our widget, passing in the viewer
+    my_widget = Count3D(
+        viewer, cell_type_config=[CellTypeConfig("one"), CellTypeConfig("two")]
+    )
+    assert len(my_widget.undo_stack) == 0
+    viewer.layers["one"].add([1, 2, 3])
+    viewer.layers["two"].add([1, 2, 3])
+    assert len(my_widget.undo_stack) == 2
     my_widget.undo()
+    assert len(my_widget.undo_stack) == 1
+    assert total_n_points(my_widget.cell_type_gui_and_data) == 1
     my_widget.undo()
+    assert len(my_widget.undo_stack) == 0
+    assert total_n_points(my_widget.cell_type_gui_and_data) == 0
 
 
 def test_name_counter(make_napari_viewer):
@@ -294,4 +406,4 @@ def test_change_face_color(make_napari_viewer):
 # assert captured.out == f"you have selected {layer}\n"
 
 if __name__ == "__main__":
-    test_add_point(napari.viewer.Viewer)
+    test_undo_across_states_again(napari.viewer.Viewer)
