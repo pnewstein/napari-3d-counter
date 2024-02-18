@@ -13,3 +13,4 @@ viewer.window.add_dock_widget(
     Count3D(viewer, cell_type_config=cell_type_config)
 )
 # viewer.add_image(img, channel_axis=1)
+napari.run()
