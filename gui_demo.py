@@ -45,6 +45,7 @@ if len(sys.argv) == 2:
         Count3D(viewer, [CellTypeConfig("Counter 1")])
     )
 
+napari.run()
 # start wiget
 # add green cells
 # add magenta cells
