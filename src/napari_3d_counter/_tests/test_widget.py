@@ -47,10 +47,10 @@ def test_change_color(make_napari_viewer):
     default_celltype = my_widget.cell_type_gui_and_data[0]
     my_widget.new_pointer_point(Event([np.array([1, 1, 1])]))
     test_color = to_rgba_array("#12345678")
-    assert sum(default_celltype.layer.edge_color[0] - test_color[0]) > 0.01
-    default_celltype.layer.current_edge_color = test_color[0]
+    assert sum(default_celltype.layer.border_color[0] - test_color[0]) > 0.01
+    default_celltype.layer.current_border_color = test_color[0]
     print(test_color[0])
-    assert sum(default_celltype.layer.edge_color[0] - test_color[0]) < 0.01
+    assert sum(default_celltype.layer.border_color[0] - test_color[0]) < 0.01
 
 
 def test_add_point(make_napari_viewer):
@@ -331,7 +331,7 @@ def test_color_conflict(make_napari_viewer):
     my_widget.read_points_from_df(df)
     assert (
         to_hex(
-            my_widget.cell_type_gui_and_data[-1].layer.current_edge_color,
+            my_widget.cell_type_gui_and_data[-1].layer.current_border_color,
             keep_alpha=True,
         )
         == DEFAULT_COLOR_SEQUENCE[2]

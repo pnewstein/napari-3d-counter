@@ -98,7 +98,7 @@ class CellTypeGuiAndData:
             f"[{self.layer.data.shape[0]}] {self.layer.name}" + keybind_str
         )
         self.button.setText(button_text)
-        color = to_hex(self.layer.current_edge_color)
+        color = to_hex(self.layer.current_border_color)
         text_color = get_text_color(color)
         # hover_color is half way between text color and background color
         hover_color_rgb = (
@@ -109,14 +109,14 @@ class CellTypeGuiAndData:
             f"QPushButton:hover{{background-color: {to_hex(hover_color_rgb)}}}"
         )
         self.button.setStyleSheet(style_sheet)
-        # updates all edge_colors to current_edge_color
-        current_color = to_rgba_array(self.layer.current_edge_color)
-        n_edge_colors = self.layer.edge_color.shape[0]
-        if n_edge_colors:
-            self.layer.edge_color = np.vstack([current_color] * n_edge_colors)
+        # updates all border_colors to current_border_color
+        current_color = to_rgba_array(self.layer.current_border_color)
+        n_border_colors = self.layer.border_color.shape[0]
+        if n_border_colors:
+            self.layer.border_color = np.vstack([current_color] * n_border_colors)
 
     def update_attr(
-        self, attr: Literal["symbol", "size", "face_color", "edge_width"]
+        self, attr: Literal["symbol", "size", "face_color", "border_width"]
     ):
         """
         updates the size of the cell to the current size
@@ -131,7 +131,7 @@ class CellTypeGuiAndData:
         """
         return CellTypeConfig(
             name=self.layer.name,
-            color=to_hex(self.layer.current_edge_color, keep_alpha=True),
+            color=to_hex(self.layer.current_border_color, keep_alpha=True),
             keybind=self.keybind,
         )
 
@@ -196,7 +196,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         # handle undo button
         undo_button = QPushButton("Undo (u)")
         undo_button.clicked.connect(self.undo)
-        self.viewer.bind_key(key="u", func=self.undo, overwrite=True)
+        self.viewer.bind_key(key_bind="u", func=self.undo, overwrite=True)
         self.layout().addWidget(undo_button)
         # code gen button
         code_gen_button = QPushButton("Make launch_cell_count.py")
@@ -307,12 +307,12 @@ class Count3D(QWidget):  # pylint: disable=R0902
             data=data,
             ndim=3,
             name=config.name,
-            edge_color=config.color,
+            border_color=config.color,
             size=config.outline_size,
             out_of_slice_display=True,
             symbol=config.symbol,
             face_color=config.face_color,
-            edge_width=config.edge_width,
+            border_width=config.edge_width,
         )
         point_layer.events.data.connect(self.handle_data_changed)
         btn = QPushButton()
@@ -328,7 +328,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         )
         if config.keybind:
             try:
-                self.viewer.bind_key(key=config.keybind, func=change_state_fun)
+                self.viewer.bind_key(key_bind=config.keybind, func=change_state_fun)
             except ValueError:
                 # probably key bind was already set
                 out.keybind = ""
@@ -336,8 +336,8 @@ class Count3D(QWidget):  # pylint: disable=R0902
         # update GUI when name changes
         point_layer.events.name.connect(self.update_gui)
         # update GUI when color changes
-        point_layer.events.current_edge_color.connect(self.update_gui)
-        # Update rest of the points when face_color, size, symbol, edge_width changes
+        point_layer.events.current_border_color.connect(self.update_gui)
+        # Update rest of the points when face_color, size, symbol, border_width changes
         point_layer.events.current_face_color.connect(
             partial(out.update_attr, "face_color")
         )
@@ -347,8 +347,8 @@ class Count3D(QWidget):  # pylint: disable=R0902
         point_layer.events.current_symbol.connect(
             partial(out.update_attr, "symbol")
         )
-        point_layer.events.current_edge_width.connect(
-            partial(out.update_attr, "edge_width")
+        point_layer.events.current_border_width.connect(
+            partial(out.update_attr, "border_width")
         )
         return out
 
@@ -370,7 +370,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         self.pointer_type_state_label.setText(
             self.pointer_type_state.layer.name
         )
-        color = to_hex(self.pointer_type_state.layer.current_edge_color)
+        color = to_hex(self.pointer_type_state.layer.current_border_color)
         text_color = get_text_color(color)
         style_sheet = (
             f"background-color: {color}; color: {text_color}; font-size: 20px"
