@@ -4,6 +4,7 @@ from typing import List, Optional
 import numpy as np
 import pandas as pd
 from matplotlib.colors import to_hex, to_rgba_array
+import pytest
 
 from napari_3d_counter import CellTypeConfig, Count3D
 from napari_3d_counter.celltype_config import DEFAULT_COLOR_SEQUENCE
@@ -353,6 +354,8 @@ def test_load_save_loop(make_napari_viewer):
 
 
 def test_change_symbol(make_napari_viewer):
+    if napari.__version__.split(".")[:3] == ["0", "4", "19"]:
+        pytest.skip("changing symbol not supported in napari 0.4.19")
     viewer = make_napari_viewer()
     my_widget = Count3D(viewer, [CellTypeConfig(name="test_name")])
     my_widget.new_pointer_point(Event([np.array([1, 2, 1])]))

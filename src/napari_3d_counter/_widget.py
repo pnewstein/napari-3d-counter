@@ -344,12 +344,17 @@ class Count3D(QWidget):  # pylint: disable=R0902
         point_layer.events.current_size.connect(
             partial(out.update_attr, "size")
         )
-        point_layer.events.current_symbol.connect(
-            partial(out.update_attr, "symbol")
-        )
         point_layer.events.current_edge_width.connect(
             partial(out.update_attr, "edge_width")
         )
+        def update_symbol():
+            if napari.__version__.split(".")[:3] == ["0", "4", "19"]:
+                # see https://github.com/napari/napari/issues/6865
+                print("Updating exising symbols is not supported in napari 0.4.19\n"
+                      "This feature is availible in napari 0.4.18")
+            else:
+                out.update_attr("symbol")
+        point_layer.events.current_symbol.connect(update_symbol)
         return out
 
     def change_state_to(self, state: CellTypeGuiAndData, *args, **kwargs):
