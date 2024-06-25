@@ -507,6 +507,16 @@ class Count3D(QWidget):  # pylint: disable=R0902
             cell_type("str"), z(float), x(float), y(float)
         """
         layer_names = np.unique(data["cell_type"])
+        # if layer name is used and empty move over the data to that one
+        layers = {ct.layer.name: ct.layer for ct in self.cell_type_gui_and_data}
+        duplicate_layers = layer_names[np.isin(layer_names, list(layers.keys()))]
+        for layer_name in duplicate_layers:
+            if len(layers[layer_name].data) == 0:
+                # remove that layer from layer_names to add
+                layer_names = layer_names[layer_names != layer_name]
+                # tranfer the layer over
+                points = data.loc[data["cell_type"] == layer_name, ["z", "y", "x"]]
+                layers[layer_name].data = points
         self.initial_config = process_cell_type_config(
             [ct.get_calculated_config() for ct in self.cell_type_gui_and_data]
             + [CellTypeConfig(name=name) for name in layer_names]
