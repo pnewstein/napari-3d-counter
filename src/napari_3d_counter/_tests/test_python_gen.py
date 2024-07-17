@@ -24,7 +24,7 @@ def test_code_gen_color(make_napari_viewer):
     viewer = make_napari_viewer()
     my_widget = Count3D(viewer)
     cell_type = my_widget.cell_type_gui_and_data[0]
-    cell_type.layer.current_edge_color = to_rgba("#ffffffff")
+    cell_type.layer.current_border_color = to_rgba("#ffffffff")
     python_string = repr(cell_type.get_calculated_config())
     config = eval(python_string)
     assert config.color == "#ffffffff"

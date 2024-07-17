@@ -107,7 +107,7 @@ def test_seting_color(viewer):
     ctc = [cc.CellTypeConfig(color=test_feat)]
     widget = Count3D(viewer, ctc)
     layer = widget.cell_type_gui_and_data[0].layer
-    assert layer.current_edge_color == test_feat
+    assert layer.current_border_color == test_feat
 
 
 def test_seting_outline_size(viewer):
@@ -139,7 +139,7 @@ def test_seting_edge_width(viewer):
     ctc = [cc.CellTypeConfig(edge_width=test_feat)]
     widget = Count3D(viewer, ctc)
     layer = widget.cell_type_gui_and_data[0].layer
-    assert layer.current_edge_width == test_feat
+    assert layer.current_border_width == test_feat
 
 
 if __name__ == "__main__":
