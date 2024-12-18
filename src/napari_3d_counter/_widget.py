@@ -9,6 +9,7 @@ from typing import List, Optional, Literal
 from threading import Lock
 
 import napari
+from napari.layers import Points, Labels
 import numpy as np
 import pandas as pd
 from matplotlib.colors import to_hex, to_rgba_array
@@ -82,7 +83,7 @@ class CellTypeGuiAndData:
 
     keybind: str
     button: QPushButton
-    layer: napari.layers.Points
+    layer: Points
     gui_lock: Lock
 
     def update_button_gui(self):
@@ -543,8 +544,8 @@ class Count3D(QWidget):  # pylint: disable=R0902
 # to indicate it should be wrapped as a magicgui to autogenerate
 # a widget.
 def reconstruct_selected(
-    labels_layer: napari.layers.labels.Labels,
-    point_layer: napari.layers.points.Points,
+    labels_layer: Labels,
+    point_layer: Points,
     viewer: napari.viewer.Viewer,
 ) -> np.ndarray:
     """
