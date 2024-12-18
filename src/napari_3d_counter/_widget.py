@@ -171,6 +171,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
             )
             cell_type_config = DEFUALT_CONFIG
         self.initial_config = process_cell_type_config(cell_type_config)
+        """initial because it doesn't take into account gui changes"""
         # viewer is needed to add layers
         self.viewer = napari_viewer
         # a stack containing points with added layers
@@ -231,7 +232,6 @@ class Count3D(QWidget):  # pylint: disable=R0902
         save_button.clicked.connect(self.load_data_gui)
         row_layout.addWidget(save_button)
         self.layout().addLayout(row_layout)
-
         # initialize state to the first default
         self.pointer_type_state = self.cell_type_gui_and_data[0]
         self.change_state_to(self.pointer_type_state)
@@ -289,7 +289,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
             return
         pointer_coords = event.value
         assert self.gui_lock.acquire(blocking=False)
-        self.pointer.data = []
+        self.pointer.data = np.array([])
         self.gui_lock.release()
         current_cell_type = self.pointer_type_state
         # dispatch point to appropriate layer
@@ -565,7 +565,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
 def reconstruct_selected(
     labels_layer: Labels,
     point_layer: Points,
-    viewer: napari.viewer.Viewer,
+    viewer: napari.Viewer,
 ) -> np.ndarray:
     """
     Reconstructs the layers in an image
