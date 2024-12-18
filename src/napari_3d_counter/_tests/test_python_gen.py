@@ -50,7 +50,23 @@ def test_print_config(make_napari_viewer):
     print(my_widget.config_in_python())
 
 
+def test_size_config(make_napari_viewer):
+    viewer = make_napari_viewer()
+    my_widget = Count3D(viewer)
+    cell_type = my_widget.cell_type_gui_and_data[0]
+    cell_type.layer.add([0, 0, 0])
+    assert cell_type.layer.current_size != 77
+    cell_type.layer.current_size = 77
+    assert cell_type.layer.current_size == 77
+    assert cell_type.layer.size[0] == 77
+    calculated_config = cell_type.get_calculated_config()
+    assert (isinstance(calculated_config.symbol, str))
+    assert calculated_config.outline_size == 77
+
+
 if __name__ == "__main__":
     import napari
 
-    test_print_config(napari.viewer.Viewer)
+    test_config_self(napari.viewer.Viewer)
+    viewer = napari.current_viewer()
+    viewer.close_all()

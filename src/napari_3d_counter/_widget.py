@@ -130,10 +130,24 @@ class CellTypeGuiAndData:
         """
         returns the current configuration of the channel
         """
+        
+        # sometimes current size is a numpy array of 1
+        current_size = self.layer.current_size
+        if isinstance(current_size, np.ndarray):
+            current_size = current_size.ravel()[0]
+        # sometimes edge_width is a numpy array of 1
+        edge_width = self.layer.current_border_width
+        if isinstance(edge_width, np.ndarray):
+            edge_width = edge_width.ravel()[0]
+
         return CellTypeConfig(
             name=self.layer.name,
             color=to_hex(self.layer.current_border_color, keep_alpha=True),
             keybind=self.keybind,
+            symbol=self.layer.current_symbol.value, #type: ignore
+            outline_size=current_size,
+            face_color=self.layer.current_face_color,
+            edge_width=edge_width
         )
 
 
@@ -144,7 +158,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
 
     def __init__(
         self,
-        napari_viewer: napari.viewer.Viewer,
+        napari_viewer: napari.Viewer,
         cell_type_config: Optional[List[CellTypeConfig]] = None,
     ):
         super().__init__()
