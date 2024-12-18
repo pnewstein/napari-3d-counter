@@ -183,6 +183,11 @@ class Count3D(QWidget):  # pylint: disable=R0902
             size=self.initial_config[0].out_of_slice_point_size,
             name="out of slice",
         )
+        def update_out_of_slice_size():
+            current = self.out_of_slice_points.current_size
+            n_points = self.out_of_slice_points.data.shape[0]
+            self.out_of_slice_points.size = np.array([current] * n_points)
+        self.out_of_slice_points.events.current_size.connect(update_out_of_slice_size)
         # set up cell type points layers
         self.cell_type_gui_and_data = [
             self.init_celltype_gui_and_data(state)
