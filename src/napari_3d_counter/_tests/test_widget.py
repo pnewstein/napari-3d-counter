@@ -4,14 +4,14 @@ from typing import List, Optional
 
 import numpy as np
 import pandas as pd
-from matplotlib.colors import to_hex, to_rgba_array
 import pytest
 
 from napari_3d_counter import CellTypeConfig, Count3D
-from napari_3d_counter.celltype_config import DEFAULT_COLOR_SEQUENCE
+from napari_3d_counter.celltype_config import DEFAULT_COLOR_SEQUENCE, to_hex
 from napari_3d_counter._widget import CellTypeGuiAndData
 
 import napari
+from napari.utils.color import ColorValue
 
 
 @dataclass
@@ -48,11 +48,9 @@ def test_change_color(make_napari_viewer):
     my_widget = Count3D(viewer)
     default_celltype = my_widget.cell_type_gui_and_data[0]
     my_widget.new_pointer_point(Event([np.array([1, 1, 1])]))
-    test_color = to_rgba_array("#12345678")
-    assert sum(default_celltype.layer.border_color[0] - test_color[0]) > 0.01
-    default_celltype.layer.current_border_color = test_color[0]
-    print(test_color[0])
-    assert sum(default_celltype.layer.border_color[0] - test_color[0]) < 0.01
+    test_color = ColorValue("#12345678")
+    default_celltype.layer.current_border_color = test_color
+    assert np.allclose(default_celltype.layer.border_color[0], test_color)
 
 
 def test_add_point(make_napari_viewer):
@@ -359,11 +357,9 @@ def test_color_conflict(make_napari_viewer):
         }
     )
     my_widget.read_points_from_df(df)
+    layer = my_widget.cell_type_gui_and_data[-1].layer
     assert (
-        to_hex(
-            my_widget.cell_type_gui_and_data[-1].layer.current_border_color,
-            keep_alpha=True,
-        )
+        to_hex(ColorValue( layer.current_border_color,))
         == DEFAULT_COLOR_SEQUENCE[2]
     )
 
@@ -438,4 +434,4 @@ def test_change_face_color(make_napari_viewer):
 # assert captured.out == f"you have selected {layer}\n"
 
 if __name__ == "__main__":
-    test_load_points_from_df_overlap(napari.viewer.Viewer)
+    test_color_conflict(napari.Viewer)

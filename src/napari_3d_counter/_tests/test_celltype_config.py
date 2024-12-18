@@ -3,9 +3,16 @@ tests configuration of celltypes through python
 """
 
 import pytest
+import numpy as np
 
 from napari_3d_counter import celltype_config as cc
 from napari_3d_counter import Count3D
+
+
+def test_to_hex():
+    assert cc.to_hex(np.array([0, 0, 0])) == "#000000"
+    assert cc.to_hex(np.array([0, 0, 1, 0])) == "#0000ff00"
+    assert cc.to_hex(np.array([0.5, 0, 1, 0])) == "#7f00ff00"
 
 
 def test_fewer_colors():
@@ -143,4 +150,4 @@ def test_seting_edge_width(viewer):
 
 
 if __name__ == "__main__":
-    test_mismatch()
+    test_process_cell_type_config()

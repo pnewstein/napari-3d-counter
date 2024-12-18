@@ -2,12 +2,12 @@
 Tests the code that generates python
 """
 
-from matplotlib.colors import to_rgba
-
 from napari_3d_counter import (
     Count3D,
-    CellTypeConfig,
-)  # pylint: disable: unused-import
+    CellTypeConfig, # type: ignore
+)
+
+import numpy as np
 
 
 def test_code_gen_name(make_napari_viewer):
@@ -24,7 +24,7 @@ def test_code_gen_color(make_napari_viewer):
     viewer = make_napari_viewer()
     my_widget = Count3D(viewer)
     cell_type = my_widget.cell_type_gui_and_data[0]
-    cell_type.layer.current_border_color = to_rgba("#ffffffff")
+    cell_type.layer.current_border_color = np.array([1, 1, 1, 1])
     python_string = repr(cell_type.get_calculated_config())
     config = eval(python_string)
     assert config.color == "#ffffffff"
@@ -67,6 +67,6 @@ def test_size_config(make_napari_viewer):
 if __name__ == "__main__":
     import napari
 
-    test_config_self(napari.viewer.Viewer)
+    test_code_gen_color(napari.viewer.Viewer)
     viewer = napari.current_viewer()
     viewer.close_all()

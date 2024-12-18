@@ -4,12 +4,22 @@ Contains code for specifying style: keyboard shortcut, color, name
 
 from dataclasses import dataclass
 from typing import List, Optional, Tuple, Union
+import numpy as np
 
-from matplotlib.colors import to_hex
+from napari.utils.color import ColorValue
+
 
 MatplotlibColor = Union[
     Tuple[float, float, float], Tuple[float, float, float, float], str
 ]
+
+
+def to_hex(color: np.ndarray) -> str:
+    """
+    converts an array color to a hex string
+    """
+    return "#" + "".join(f"{int(c * 255):02x}" for c in color)
+
 
 DEFAULT_KEYMAP_SEQUENCE = ["q", "w", "e", "r", "t", "y", ""]
 DEFAULT_COLOR_SEQUENCE = [
@@ -101,7 +111,7 @@ def resolve_color(color: MatplotlibColor) -> str:
     """
     resolves matplotlib color
     """
-    return to_hex(color, keep_alpha=True)
+    return to_hex(ColorValue(color))
 
 
 def process_cell_type_config(

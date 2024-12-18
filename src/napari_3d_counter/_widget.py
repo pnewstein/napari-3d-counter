@@ -8,12 +8,13 @@ from pathlib import Path
 from typing import List, Optional, Literal
 from threading import Lock
 
+
 import napari
 from napari.layers import Points, Labels
 import numpy as np
 import pandas as pd
-from matplotlib.colors import to_hex, to_rgba_array
 from napari.utils.events import Event
+from napari.utils.color import ColorValue
 from qtpy.QtCore import Qt  # type: ignore
 from qtpy.QtWidgets import (  # pylint: disable=no-name-in-module
     QFileDialog,
@@ -29,6 +30,7 @@ from .celltype_config import (
     CellTypeConfig,
     CellTypeConfigNotOptional,
     process_cell_type_config,
+    to_hex
 )
 
 DEFUALT_CONFIG = [
@@ -47,7 +49,7 @@ def get_text_color(background_color: str) -> str:
     # same function as dinstinctipy
     white = "#ffffff"
     black = "#000000"
-    red, green, blue, _ = to_rgba_array(background_color)[0]
+    red, green, blue, _ = ColorValue(background_color)
     text_color = (
         white if (red * 0.299 + green * 0.587 + blue * 0.114) < 0.6 else black
     )
@@ -99,19 +101,17 @@ class CellTypeGuiAndData:
             f"[{self.layer.data.shape[0]}] {self.layer.name}" + keybind_str
         )
         self.button.setText(button_text)
-        color = to_hex(self.layer.current_border_color)
+        color = to_hex(ColorValue(self.layer.current_border_color)[:-1])
         text_color = get_text_color(color)
         # hover_color is half way between text color and background color
-        hover_color_rgb = (
-            to_rgba_array(text_color)[0] + to_rgba_array(color)[0]
-        ) / 2
+        hover_color_rgb = (ColorValue(text_color) + ColorValue(color))[:-1] / 2
         style_sheet = (
             f"QPushButton{{background-color: {color}; color: {text_color};}}"
             f"QPushButton:hover{{background-color: {to_hex(hover_color_rgb)}}}"
         )
         self.button.setStyleSheet(style_sheet)
         # updates all border_colors to current_border_color
-        current_color = to_rgba_array(self.layer.current_border_color)
+        current_color = ColorValue(self.layer.current_border_color)
         n_border_colors = self.layer.border_color.shape[0]
         if n_border_colors:
             self.layer.border_color = np.vstack(
@@ -144,7 +144,7 @@ class CellTypeGuiAndData:
 
         return CellTypeConfig(
             name=self.layer.name,
-            color=to_hex(self.layer.current_border_color, keep_alpha=True),
+            color=to_hex(ColorValue(self.layer.current_border_color)),
             keybind=self.keybind,
             symbol=self.layer.current_symbol.value,  # type: ignore
             outline_size=current_size,
@@ -410,7 +410,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
         self.pointer_type_state_label.setText(
             self.pointer_type_state.layer.name
         )
-        color = to_hex(self.pointer_type_state.layer.current_border_color)
+        color = to_hex(ColorValue(self.pointer_type_state.layer.current_border_color)[:-1])
         text_color = get_text_color(color)
         style_sheet = (
             f"background-color: {color}; color: {text_color}; font-size: 20px"
