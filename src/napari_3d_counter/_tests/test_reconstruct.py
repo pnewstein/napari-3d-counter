@@ -14,9 +14,9 @@ def place_ball(
     image: np.ndarray, position: Tuple[int, int, int], number: int, radius=5
 ) -> np.ndarray:
     ball_z, ball_x, ball_y = np.where(ball(radius))
-    image[ball_z + position[0], ball_x + position[1], ball_y + position[2]] = (
-        number
-    )
+    image[
+        ball_z + position[0], ball_x + position[1], ball_y + position[2]
+    ] = number
     return image
 
 

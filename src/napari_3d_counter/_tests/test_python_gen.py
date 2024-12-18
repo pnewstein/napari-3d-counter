@@ -60,7 +60,7 @@ def test_size_config(make_napari_viewer):
     assert cell_type.layer.current_size == 77
     assert cell_type.layer.size[0] == 77
     calculated_config = cell_type.get_calculated_config()
-    assert (isinstance(calculated_config.symbol, str))
+    assert isinstance(calculated_config.symbol, str)
     assert calculated_config.outline_size == 77
 
 

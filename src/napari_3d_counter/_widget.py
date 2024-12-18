@@ -114,7 +114,9 @@ class CellTypeGuiAndData:
         current_color = to_rgba_array(self.layer.current_border_color)
         n_border_colors = self.layer.border_color.shape[0]
         if n_border_colors:
-            self.layer.border_color = np.vstack([current_color] * n_border_colors)
+            self.layer.border_color = np.vstack(
+                [current_color] * n_border_colors
+            )
 
     def update_attr(
         self, attr: Literal["symbol", "size", "face_color", "border_width"]
@@ -130,7 +132,7 @@ class CellTypeGuiAndData:
         """
         returns the current configuration of the channel
         """
-        
+
         # sometimes current size is a numpy array of 1
         current_size = self.layer.current_size
         if isinstance(current_size, np.ndarray):
@@ -144,10 +146,10 @@ class CellTypeGuiAndData:
             name=self.layer.name,
             color=to_hex(self.layer.current_border_color, keep_alpha=True),
             keybind=self.keybind,
-            symbol=self.layer.current_symbol.value, #type: ignore
+            symbol=self.layer.current_symbol.value,  # type: ignore
             outline_size=current_size,
             face_color=self.layer.current_face_color,
-            edge_width=edge_width
+            edge_width=edge_width,
         )
 
 
@@ -184,11 +186,15 @@ class Count3D(QWidget):  # pylint: disable=R0902
             size=self.initial_config[0].out_of_slice_point_size,
             name="out of slice",
         )
+
         def update_out_of_slice_size():
             current = self.out_of_slice_points.current_size
             n_points = self.out_of_slice_points.data.shape[0]
             self.out_of_slice_points.size = np.array([current] * n_points)
-        self.out_of_slice_points.events.current_size.connect(update_out_of_slice_size)
+
+        self.out_of_slice_points.events.current_size.connect(
+            update_out_of_slice_size
+        )
         # set up cell type points layers
         self.cell_type_gui_and_data = [
             self.init_celltype_gui_and_data(state)
@@ -348,7 +354,9 @@ class Count3D(QWidget):  # pylint: disable=R0902
         )
         if config.keybind:
             try:
-                self.viewer.bind_key(key_bind=config.keybind, func=change_state_fun)
+                self.viewer.bind_key(
+                    key_bind=config.keybind, func=change_state_fun
+                )
             except ValueError:
                 # probably key bind was already set
                 out.keybind = ""
@@ -370,13 +378,17 @@ class Count3D(QWidget):  # pylint: disable=R0902
         point_layer.events.current_border_width.connect(
             partial(out.update_attr, "border_width")
         )
+
         def update_symbol():
             if napari.__version__.split(".")[:3] == ["0", "4", "19"]:
                 # see https://github.com/napari/napari/issues/6865
-                print("Updating exising symbols is not supported in napari 0.4.19\n"
-                      "This feature is availible in napari 0.4.18")
+                print(
+                    "Updating exising symbols is not supported in napari 0.4.19\n"
+                    "This feature is availible in napari 0.4.18"
+                )
             else:
                 out.update_attr("symbol")
+
         point_layer.events.current_symbol.connect(update_symbol)
         return out
 
@@ -531,14 +543,20 @@ class Count3D(QWidget):  # pylint: disable=R0902
         """
         layer_names = np.unique(data["cell_type"])
         # if layer name is used and empty move over the data to that one
-        layers = {ct.layer.name: ct.layer for ct in self.cell_type_gui_and_data}
-        duplicate_layers = layer_names[np.isin(layer_names, list(layers.keys()))]
+        layers = {
+            ct.layer.name: ct.layer for ct in self.cell_type_gui_and_data
+        }
+        duplicate_layers = layer_names[
+            np.isin(layer_names, list(layers.keys()))
+        ]
         for layer_name in duplicate_layers:
             if len(layers[layer_name].data) == 0:
                 # remove that layer from layer_names to add
                 layer_names = layer_names[layer_names != layer_name]
                 # tranfer the layer over
-                points = data.loc[data["cell_type"] == layer_name, ["z", "y", "x"]]
+                points = data.loc[
+                    data["cell_type"] == layer_name, ["z", "y", "x"]
+                ]
                 layers[layer_name].data = points
         self.initial_config = process_cell_type_config(
             [ct.get_calculated_config() for ct in self.cell_type_gui_and_data]

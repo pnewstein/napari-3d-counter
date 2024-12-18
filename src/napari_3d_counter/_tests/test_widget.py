@@ -299,9 +299,17 @@ def test_load_points_from_df(make_napari_viewer):
     print(my_widget.cell_type_gui_and_data[-1])
     assert my_widget.cell_type_gui_and_data[-1].layer.name == "2"
 
+
 def test_load_points_from_df_overlap(make_napari_viewer):
     viewer = make_napari_viewer()
-    my_widget = Count3D(viewer, cell_type_config=[CellTypeConfig("1"),CellTypeConfig("2"), CellTypeConfig("3")])
+    my_widget = Count3D(
+        viewer,
+        cell_type_config=[
+            CellTypeConfig("1"),
+            CellTypeConfig("2"),
+            CellTypeConfig("3"),
+        ],
+    )
     viewer.layers["1"].add([1, 2, 3])
     df = pd.DataFrame(
         {
@@ -314,8 +322,8 @@ def test_load_points_from_df_overlap(make_napari_viewer):
     my_widget.read_points_from_df(df)
     layers = [n.layer for n in my_widget.cell_type_gui_and_data]
     names = [layer.name for layer in layers]
-    assert len(names) == 4 # two "1"s one of others
-    assert len(viewer.layers["2"].data) == 2 # they transfered over
+    assert len(names) == 4  # two "1"s one of others
+    assert len(viewer.layers["2"].data) == 2  # they transfered over
 
 
 def test_name_conflict(make_napari_viewer):
