@@ -1,6 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Optional
+import re
 
 import numpy as np
 import pandas as pd
@@ -25,6 +26,16 @@ def total_n_points(cell_type_gui_and_data: list[CellTypeGuiAndData]):
     for cell_type in cell_type_gui_and_data:
         sum = sum + cell_type.layer.data.shape[0]
     return sum
+
+
+def get_gui_counter_state(cell_type: CellTypeGuiAndData) -> int:
+    """
+    parses the count from the widget
+    """
+    text = cell_type.button.text()
+    (match,) = re.finditer(r"\[(\d+)\]", text)
+    (count_str,) = match.groups()
+    return int(count_str)
 
 
 # make_napari_viewer is a pytest fixture that returns a napari viewer object
@@ -71,6 +82,21 @@ def test_add_point(make_napari_viewer):
     assert default_celltype.layer.data.shape == (2, 3)
 
 
+def test_gui_count_change(make_napari_viewer):
+    viewer = make_napari_viewer()
+    viewer.add_image(np.random.random((100, 100, 100)))
+
+    # create our widget, passing in the viewer
+    my_widget = Count3D(viewer)
+    event = Event()
+    default_celltype = my_widget.cell_type_gui_and_data[0]
+    assert get_gui_counter_state(default_celltype) == 0
+    event.value = [np.array([1, 1, 1])]
+    my_widget.new_pointer_point(event)
+    assert get_gui_counter_state(default_celltype) == 1
+
+
+
 def test_keybind_conflict(make_napari_viewer):
     viewer = make_napari_viewer()
     config = [CellTypeConfig(keybind="q"), CellTypeConfig(keybind="q")]
@@ -92,6 +118,7 @@ def test_undo(make_napari_viewer):
     my_widget.undo()
     default_celltype = my_widget.cell_type_gui_and_data[0]
     assert len(default_celltype.layer.data) == 0
+    assert get_gui_counter_state(default_celltype) == 0
 
 
 def test_manual_add(make_napari_viewer):
@@ -359,7 +386,11 @@ def test_color_conflict(make_napari_viewer):
     my_widget.read_points_from_df(df)
     layer = my_widget.cell_type_gui_and_data[-1].layer
     assert (
-        to_hex(ColorValue( layer.current_border_color,))
+        to_hex(
+            ColorValue(
+                layer.current_border_color,
+            )
+        )
         == DEFAULT_COLOR_SEQUENCE[2]
     )
 
