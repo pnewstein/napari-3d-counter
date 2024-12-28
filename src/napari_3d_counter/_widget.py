@@ -30,7 +30,7 @@ from .celltype_config import (
     CellTypeConfig,
     CellTypeConfigNotOptional,
     process_cell_type_config,
-    to_hex
+    to_hex,
 )
 
 DEFUALT_CONFIG = [
@@ -128,7 +128,9 @@ class CellTypeGuiAndData:
         n_points = self.layer.data.shape[0]
         setattr(self.layer, attr, np.array([current] * n_points))
 
-    def get_calculated_config(self) -> CellTypeConfig:
+    def get_calculated_config(
+        self, out_of_slice_points_size: float
+    ) -> CellTypeConfig:
         """
         returns the current configuration of the channel
         """
@@ -144,6 +146,7 @@ class CellTypeGuiAndData:
 
         return CellTypeConfig(
             name=self.layer.name,
+            out_of_slice_point_size=out_of_slice_points_size,
             color=to_hex(ColorValue(self.layer.current_border_color)),
             keybind=self.keybind,
             symbol=self.layer.current_symbol.value,  # type: ignore
@@ -410,7 +413,9 @@ class Count3D(QWidget):  # pylint: disable=R0902
         self.pointer_type_state_label.setText(
             self.pointer_type_state.layer.name
         )
-        color = to_hex(ColorValue(self.pointer_type_state.layer.current_border_color)[:-1])
+        color = to_hex(
+            ColorValue(self.pointer_type_state.layer.current_border_color)[:-1]
+        )
         text_color = get_text_color(color)
         style_sheet = (
             f"background-color: {color}; color: {text_color}; font-size: 20px"
@@ -444,18 +449,18 @@ class Count3D(QWidget):  # pylint: disable=R0902
         header = (
             "import napari\n"
             "from napari_3d_counter import Count3D, CellTypeConfig\n\n"
-            "viewer = napari.viewer.Viewer()\n"
             "# set up cell types\n"
             "config = [\n"
         )
+        out_of_slice_points_size = self.out_of_slice_points.current_size
         config_lines = [
-            f"    {repr(cell_type.get_calculated_config())},\n"
+            f"    {repr(cell_type.get_calculated_config(out_of_slice_points_size))},\n"
             for cell_type in self.cell_type_gui_and_data
         ]
         footer = (
             "]\n"
             "# make a new viewer\n"
-            "viewer = napari.viewer.Viewer()\n"
+            "viewer = napari.Viewer()\n"
             "# attach plugin to viewer\n"
             "viewer.window.add_dock_widget(Count3D(viewer, cell_type_config=config))"
         )
@@ -559,7 +564,10 @@ class Count3D(QWidget):  # pylint: disable=R0902
                 ]
                 layers[layer_name].data = points
         self.initial_config = process_cell_type_config(
-            [ct.get_calculated_config() for ct in self.cell_type_gui_and_data]
+            [
+                ct.get_calculated_config(self.out_of_slice_points.current_size)
+                for ct in self.cell_type_gui_and_data
+            ]
             + [CellTypeConfig(name=name) for name in layer_names]
         )
         for config, layer_name in zip(

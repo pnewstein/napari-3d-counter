@@ -52,7 +52,7 @@ class CellTypeConfig:  # pylint: disable=too-many-instance-attributes
     "the keyboard binding to switch to this celltype"
     outline_size: Optional[float] = None
     "The size of the circle around the cell"
-    out_of_slice_point_size: Optional[int] = None
+    out_of_slice_point_size: Optional[float] = None
     "The size of the out of slice point"
     face_color: Optional[MatplotlibColor] = None
     "The filled in color of the point"
