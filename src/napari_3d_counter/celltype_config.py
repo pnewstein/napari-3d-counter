@@ -96,7 +96,8 @@ def fill_in_defaults(
     # discard used defaults
     default_list = [d for d in defaults if d not in used_defaults]
     # ensure that we will never run out of defauts
-    default_list = default_list + ([default_list[-1]] * len(requests))
+    last_default = default_list[-1] if default_list else defaults[-1]
+    default_list = default_list + ([last_default] * len(requests))
     # fill in Nones with a next unique default
     out: List[str] = []
     for request in requests:

@@ -40,6 +40,11 @@ def test_specified_default():
     ]
 
 
+def test_over_specified_default():
+    request = [*cc.DEFAULT_COLOR_SEQUENCE, None]
+    out = cc.fill_in_defaults(request, cc.DEFAULT_COLOR_SEQUENCE)
+    assert out == [*cc.DEFAULT_COLOR_SEQUENCE, cc.DEFAULT_COLOR_SEQUENCE[-1]]
+
 def test_name_conflict():
     ctc = [
         cc.CellTypeConfig("Cell1"),
