@@ -9,5 +9,11 @@ except ImportError:
 
 from ._widget import Count3D, reconstruct_selected
 from .celltype_config import CellTypeConfig
+from .commands import get_n3d_counter
 
-__all__ = ("Count3D", "reconstruct_selected")
+__all__ = (
+    "Count3D",
+    "reconstruct_selected",
+    "CellTypeConfig",
+    "get_n3d_counter",
+)

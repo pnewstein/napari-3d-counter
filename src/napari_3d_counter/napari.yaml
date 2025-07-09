@@ -1,5 +1,6 @@
 name: napari-3d-counter
 display_name: 3D Counter
+categories: ["Measurement", "Utilities"]
 contributions:
   commands:
     - id: napari-3d-counter.make_count3d
@@ -8,6 +9,18 @@ contributions:
     - id: napari-3d-counter.make_reconstruct_selected
       python_name: napari_3d_counter._widget:reconstruct_selected
       title: Make widget for reconstructing labels based on points
+    - id: napari-3d-counter.save
+      python_name: napari_3d_counter.commands:save
+      title: Save cell counts
+    - id: napari-3d-counter.load
+      python_name: napari_3d_counter.commands:load
+      title: Load cell counts
+    - id: napari-3d-counter.next_cell_type
+      python_name: napari_3d_counter.commands:next_cell_type
+      title: Switch to counting the next cell type
+    - id: napari-3d-counter.prev_cell_type
+      python_name: napari_3d_counter.commands:prev_cell_type
+      title: Switch to counting the previous cell type
   widgets:
     - command: napari-3d-counter.make_count3d
       display_name: Count 3D
