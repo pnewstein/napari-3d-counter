@@ -11,6 +11,7 @@ from threading import Lock
 
 import napari
 from napari.layers import Points, Labels
+from napari.utils._proxies import PublicOnlyProxy
 import numpy as np
 import pandas as pd
 from napari.utils.events import Event
@@ -126,6 +127,8 @@ class CellTypeGuiAndData:
         """
         current = getattr(self.layer, f"current_{attr}")
         n_points = self.layer.data.shape[0]
+        if isinstance(current, PublicOnlyProxy):
+            current = current.value
         setattr(self.layer, attr, np.array([current] * n_points))
 
     def get_calculated_config(
