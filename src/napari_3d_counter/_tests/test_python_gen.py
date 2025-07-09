@@ -4,7 +4,7 @@ Tests the code that generates python
 
 from napari_3d_counter import (
     Count3D,
-    CellTypeConfig, # type: ignore
+    CellTypeConfig,  # type: ignore
 )
 
 import numpy as np
@@ -56,7 +56,6 @@ def test_out_of_slice_size(make_napari_viewer):
     cell_type = my_widget.cell_type_gui_and_data[0]
     ctc = cell_type.get_calculated_config(100)
     assert ctc.out_of_slice_point_size == 100
-
 
 
 def test_size_config(make_napari_viewer):

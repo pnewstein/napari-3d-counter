@@ -37,12 +37,16 @@ def get_gui_counter_state(cell_type: CellTypeGuiAndData) -> int:
     (count_str,) = match.groups()
     return int(count_str)
 
+
 def test_add_plugin_dock_widget(make_napari_viewer):
     viewer = make_napari_viewer()
-    _, c3d = viewer.window.add_plugin_dock_widget("napari-3d-counter", "Count 3D")
+    _, c3d = viewer.window.add_plugin_dock_widget(
+        "napari-3d-counter", "Count 3D"
+    )
     assert isinstance(c3d, Count3D)
     # in previous versions, this threw an exception
     c3d.pointer_type_state.layer.add(coords=[0, 0, 0])
+
 
 # make_napari_viewer is a pytest fixture that returns a napari viewer object
 # capsys is a pytest fixture that captures stdout and stderr output streams
@@ -100,7 +104,6 @@ def test_gui_count_change(make_napari_viewer):
     event.value = [np.array([1, 1, 1])]
     my_widget.new_pointer_point(event)
     assert get_gui_counter_state(default_celltype) == 1
-
 
 
 def test_keybind_conflict(make_napari_viewer):
