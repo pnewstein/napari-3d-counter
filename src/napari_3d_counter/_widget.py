@@ -7,6 +7,7 @@ from functools import partial
 from pathlib import Path
 from typing import List, Optional, Literal
 from threading import Lock
+from typing import TYPE_CHECKING
 
 
 import napari
@@ -25,6 +26,7 @@ from qtpy.QtWidgets import (  # pylint: disable=no-name-in-module
     QPushButton,
     QVBoxLayout,
     QWidget,
+    QComboBox,
 )
 
 from .celltype_config import (
@@ -40,6 +42,23 @@ DEFUALT_CONFIG = [
     CellTypeConfig(keybind="e", name="Cell type 3", color="c"),
     CellTypeConfig(keybind="r", name="Cell type 4", color="m"),
 ]
+
+
+def get_n3d_counter(viewer: "napari.Viewer") -> "Count3D":
+    """
+    Gets Count3D if it exists else adds it as a dock widget
+    """
+    try:
+        c3d = next(
+            w
+            for w in viewer.window.dock_widgets.values()
+            if isinstance(w, Count3D)
+        )
+    except StopIteration:
+        _, c3d = viewer.window.add_plugin_dock_widget(
+            "napari-3d-counter", "Count 3D"
+        )
+    return c3d
 
 
 def get_text_color(background_color: str) -> str:
@@ -588,32 +607,99 @@ class Count3D(QWidget):  # pylint: disable=R0902
         self.update_gui()
 
 
-# Uses the `autogenerate: true` flag in the plugin manifest
-# to indicate it should be wrapped as a magicgui to autogenerate
-# a widget.
-def reconstruct_selected(
-    labels_layer: Labels,
-    point_layer: Points,
-    viewer: napari.Viewer,
-) -> np.ndarray:
+def reset_box(box: QComboBox, values: list[str]):
     """
-    Reconstructs the layers in an image
+    resets a combo box to a new set of values
     """
-    name = point_layer.name
-    reconstruction_data = np.zeros(labels_layer.data.shape).astype(np.int8)
-    for point in point_layer.data:
-        xcoord, ycoord, zcoord = point.astype(int)
-        neuron_label = labels_layer.data[xcoord, ycoord, zcoord]
-        if neuron_label == 0:
-            print(
-                f"skipping a point outside a lable at {[xcoord, ycoord, zcoord]}"
-            )
-            continue
-        reconstruction_data[labels_layer.data == neuron_label] = 1
-    viewer.add_image(
-        reconstruction_data,
-        name=f"{name} reconstruction",
-        blending="additive",
-        rendering="iso",
-    )
-    return reconstruction_data
+    old_value = box.currentText()
+    box.addItems(values)
+    if old_value in values:
+        box.setCurrentText(old_value)
+
+
+class ReconstructSelected(QWidget):
+    """
+    Interface for reconstructing labels into an image based on cell counts
+    """
+
+    def __init__(
+        self,
+        napari_viewer: napari.Viewer,
+    ):
+        super().__init__()
+        self.viewer = napari_viewer
+        # initialize qt GUI
+        self.setLayout(QVBoxLayout())
+        self.points_box: QComboBox = QComboBox()
+        self.layout().addWidget(self.points_box)
+        self.labels_box: QComboBox = QComboBox()
+        self.layout().addWidget(self.labels_box)
+        self.run_button = QPushButton("Reconstruct Selected")
+        self.run_button.clicked.connect(self.run)
+        self.layout().addWidget(self.run_button)
+        self.resetting_lock = Lock()
+        # viewer callbacks
+        napari_viewer.layers.events.inserted.connect(self.reset_boxes)
+        self.reset_boxes(None)
+
+    def reset_boxes(self, event):
+        _ = event
+        if self.resetting_lock.locked():
+            return
+        assert self.resetting_lock.acquire(blocking=False)
+        c3d = get_n3d_counter(self.viewer)
+        self.resetting_lock.release()
+        reset_box(
+            self.points_box,
+            [l.layer.name for l in c3d.cell_type_gui_and_data],
+        )
+        reset_box(
+            self.labels_box,
+            [l.name for l in self.viewer.layers if isinstance(l, Labels)],
+        )
+        if bool(
+            self.points_box.currentText() and self.labels_box.currentText()
+        ):
+            self.run_button.setDisabled(False)
+        else:
+            self.run_button.setDisabled(True)
+
+    def run(self, *args, **kwargs):
+        _ = args
+        _ = kwargs
+        point_layer = self.viewer.layers[self.points_box.currentText()]
+        name = point_layer.name
+        labels_layer = self.viewer.layers[self.labels_box.currentText()]
+        points_data = (
+            point_layer.data - labels_layer.translate + point_layer.translate
+        ).astype(int)
+        if TYPE_CHECKING:
+            assert isinstance(points_data, np.ndarray)
+        labels_data = labels_layer.data
+        max_coords = points_data.max(axis=0)
+        if np.any(max_coords > labels_data.shape):
+            illegal_coords_mask = (points_data > labels_data.shape).any(axis=1)
+            bad_points = points_data[illegal_coords_mask]
+            print(f"skipping points out of bounds at {bad_points}")
+            points_data = points_data[~illegal_coords_mask]
+        labels = labels_layer.data[tuple(points_data.T)]
+        if 0 in labels:
+            label_list = labels.tolist()
+            label_mask = labels == 0
+            bad_points = points_data[label_mask]
+            labels = labels[~label_mask]
+            i = label_list.index(0)
+            label_list.pop(i)
+            print(f"skipping points outside a label at {bad_points}")
+            labels = np.array(label_list)
+        reconstruction_data = (
+            np.isin(labels_data, labels).astype(np.uint8) * 255
+        )
+        return self.viewer.add_image(
+            reconstruction_data,
+            scale=point_layer.scale,
+            translate=labels_layer.translate,
+            name=f"{name} reconstruction",
+            blending="additive",
+            rendering="iso",
+        )

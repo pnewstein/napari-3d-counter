@@ -155,6 +155,17 @@ cell_type_config = [
 viewer.window.add_dock_widget(Count3D(viewer, cell_type_config=cell_type_config))
 ```
 
+##  Auxiliary plugins
+### Reconstruct Selected
+One use case of Napari 3D Counter is to visualize a subset of labeled cells.
+For example, automated process label your cells of interest as well as a set of
+off-target cells, and you would like to visualize only your cells of interest.
+This can be accomplished by using Napari 3D Counter to count your cells of
+interest, and some other process to create labels (perhaps
+[nsbatwm](https://github.com/haesleinhuepf/napari-segment-blobs-and-things-with-membranes))
+and using Reconstruct Selected to create a new image layer of those labels
+which have been counted as a particular cell type.
+
 ## Contributing
 
 Contributions are very welcome. Tests can be run with [tox], please ensure

@@ -7,13 +7,12 @@ try:
 except ImportError:
     __version__ = "unknown"
 
-from ._widget import Count3D, reconstruct_selected
+from ._widget import Count3D, ReconstructSelected, get_n3d_counter
 from .celltype_config import CellTypeConfig
-from .commands import get_n3d_counter
 
 __all__ = (
     "Count3D",
-    "reconstruct_selected",
+    "ReconstructSelected",
     "CellTypeConfig",
     "get_n3d_counter",
 )

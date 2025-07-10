@@ -7,7 +7,7 @@ contributions:
       python_name: napari_3d_counter._widget:Count3D
       title: Make widget for counting in 3d
     - id: napari-3d-counter.make_reconstruct_selected
-      python_name: napari_3d_counter._widget:reconstruct_selected
+      python_name: napari_3d_counter._widget:ReconstructSelected
       title: Make widget for reconstructing labels based on points
     - id: napari-3d-counter.save
       python_name: napari_3d_counter.commands:save
@@ -25,5 +25,4 @@ contributions:
     - command: napari-3d-counter.make_count3d
       display_name: Count 3D
     - command: napari-3d-counter.make_reconstruct_selected
-      autogenerate: true
-      display_name: Reconstruct Labels
+      display_name: Reconstruct Selected

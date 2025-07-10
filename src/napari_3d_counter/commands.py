@@ -2,25 +2,10 @@
 register commands for the command pallette
 """
 
-from . import Count3D
+from typing import TYPE_CHECKING
+
 import napari
-
-
-def get_n3d_counter(viewer: "napari.Viewer") -> Count3D:
-    """
-    Gets Count3D if it exists else adds it as a dock widget
-    """
-    try:
-        c3d = next(
-            w
-            for w in viewer.window.dock_widgets.values()
-            if isinstance(w, Count3D)
-        )
-    except StopIteration:
-        _, c3d = viewer.window.add_plugin_dock_widget(
-            "napari-3d-counter", "Count 3D"
-        )
-    return c3d
+from ._widget import get_n3d_counter
 
 
 def save(viewer: "napari.Viewer"):
