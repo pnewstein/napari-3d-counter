@@ -9,6 +9,9 @@ contributions:
     - id: napari-3d-counter.make_reconstruct_selected
       python_name: napari_3d_counter._widget:ReconstructSelected
       title: Make widget for reconstructing labels based on points
+    - id: napari-3d-counter.make_ingress_points
+      python_name: napari_3d_counter._widget:IngressPoints
+      title: Make widget for moving a points layer into Count 3D
     - id: napari-3d-counter.save
       python_name: napari_3d_counter.commands:save
       title: Save cell counts
@@ -26,3 +29,5 @@ contributions:
       display_name: Count 3D
     - command: napari-3d-counter.make_reconstruct_selected
       display_name: Reconstruct Selected
+    - command: napari-3d-counter.make_ingress_points
+      display_name: Ingress Points

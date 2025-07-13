@@ -166,6 +166,10 @@ interest, and some other process to create labels (perhaps
 and using Reconstruct Selected to create a new image layer of those labels
 which have been counted as a particular cell type.
 
+### Ingress Points
+This plugin takes a points layer and adds the points to the selected cell_type
+layer. This can be usefull if you want to manualy count cells after cell identification.
+
 ## Contributing
 
 Contributions are very welcome. Tests can be run with [tox], please ensure

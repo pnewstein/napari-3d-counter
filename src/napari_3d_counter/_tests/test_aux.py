@@ -5,10 +5,10 @@ tests the reconstruct selected plugin
 from typing import List, Tuple
 
 import numpy as np
-from skimage.morphology import ball
+from skimage.morphology import ball, binary_dilation
 import pytest
 
-from napari_3d_counter import ReconstructSelected
+from napari_3d_counter import ReconstructSelected, IngressPoints, get_n3d_counter
 
 
 def place_ball(
@@ -52,6 +52,16 @@ def test_reconstruct_selected_empty(make_napari_viewer):
     viewer.layers[-2].add(points)
     out = rs.run()
     assert out.data.sum() > 0
+    scaled = viewer.add_labels(np.zeros((10, 10, 10)).astype(int), scale=(10, .1, 100), name="scaled")
+    click_world_coords = (10, .5, 10)
+    rs.labels_box.setCurrentText("scaled")
+    viewer.layers[rs.points_box.currentText()].add(click_world_coords)
+    scaled.data[tuple(scaled.world_to_data(click_world_coords).astype(int))] = 2
+    scaled.data = binary_dilation(scaled.data)
+    assert scaled.get_value(click_world_coords, world=True) != 0
+    out = rs.run()
+    assert out.get_value(click_world_coords, world=True) != 0
+
 
 
 def test_select_only_correct(make_napari_viewer):
@@ -63,3 +73,21 @@ def test_select_only_correct(make_napari_viewer):
     viewer.layers[-1].add(points[:2] + [(29, 100, 100)])
     out = rs.run()
     assert out.data[tuple(np.array(points).T)].sum() == 510
+
+def test_ingress_points(make_napari_viewer):
+    viewer = make_napari_viewer()
+    ip = IngressPoints(viewer)
+    points = viewer.add_points(scale=(2, .2, 5))
+    click_world_coords = (10, .5, 10)
+    points.current_size = 10
+    points.add(points.world_to_data(click_world_coords))
+    assert points.get_value(click_world_coords, world=True) is not None
+    ip.run()
+    cell_type_layer = viewer.layers[ip.cell_type_box.currentText()]
+    from napari.layers import Points
+    assert isinstance(cell_type_layer, Points)
+    assert cell_type_layer.get_value(click_world_coords, world=True) is not None
+    c3d = get_n3d_counter(viewer)
+    c3d.undo()
+    assert cell_type_layer.get_value(click_world_coords, world=True) is None
+

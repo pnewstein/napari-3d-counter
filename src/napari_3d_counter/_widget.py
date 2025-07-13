@@ -613,7 +613,8 @@ def reset_box(box: QComboBox, values: list[str]):
     """
     old_value = box.currentText()
     box.addItems(values)
-    if old_value in values:
+    # avoid repeat labels
+    if old_value in set(values):
         box.setCurrentText(old_value)
 
 
@@ -640,6 +641,7 @@ class ReconstructSelected(QWidget):
         self.resetting_lock = Lock()
         # viewer callbacks
         napari_viewer.layers.events.inserted.connect(self.reset_boxes)
+        napari_viewer.layers.events.removed.connect(self.reset_boxes)
         self.reset_boxes(None)
 
     def reset_boxes(self, event):
@@ -670,36 +672,118 @@ class ReconstructSelected(QWidget):
         point_layer = self.viewer.layers[self.points_box.currentText()]
         name = point_layer.name
         labels_layer = self.viewer.layers[self.labels_box.currentText()]
-        points_data = (
-            point_layer.data - labels_layer.translate + point_layer.translate
-        ).astype(int)
+        coordinates = np.array(
+            [
+                np.round(
+                    labels_layer.world_to_data(point_layer.data_to_world(d))
+                ).astype(int)
+                for d in point_layer.data
+            ]
+        )
+        if len(coordinates) == 0:
+            print("No points to reconstruct")
+            return
         if TYPE_CHECKING:
-            assert isinstance(points_data, np.ndarray)
+            assert isinstance(coordinates, np.ndarray)
         labels_data = labels_layer.data
-        max_coords = points_data.max(axis=0)
+        max_coords = coordinates.max(axis=0)
         if np.any(max_coords > labels_data.shape):
-            illegal_coords_mask = (points_data > labels_data.shape).any(axis=1)
-            bad_points = points_data[illegal_coords_mask]
+            illegal_coords_mask = (coordinates > labels_data.shape).any(axis=1)
+            bad_points = coordinates[illegal_coords_mask]
             print(f"skipping points out of bounds at {bad_points}")
-            points_data = points_data[~illegal_coords_mask]
-        labels = labels_layer.data[tuple(points_data.T)]
+            coordinates = coordinates[~illegal_coords_mask]
+        labels = labels_layer.data[tuple(coordinates.T)]
         if 0 in labels:
-            label_list = labels.tolist()
             label_mask = labels == 0
-            bad_points = points_data[label_mask]
+            bad_points = coordinates[label_mask]
             labels = labels[~label_mask]
-            i = label_list.index(0)
-            label_list.pop(i)
             print(f"skipping points outside a label at {bad_points}")
-            labels = np.array(label_list)
         reconstruction_data = (
             np.isin(labels_data, labels).astype(np.uint8) * 255
         )
         return self.viewer.add_image(
             reconstruction_data,
-            scale=point_layer.scale,
+            scale=labels_layer.scale,
             translate=labels_layer.translate,
+            affine=labels_layer.affine,
             name=f"{name} reconstruction",
             blending="additive",
             rendering="iso",
         )
+
+
+class IngressPoints(QWidget):
+    """
+    Interface for ingressing points
+    """
+
+    def __init__(
+        self,
+        napari_viewer: napari.Viewer,
+    ):
+        super().__init__()
+        self.viewer = napari_viewer
+        # initialize qt GUI
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(QLabel("from:"))
+        self.points_box: QComboBox = QComboBox()
+        self.layout().addWidget(self.points_box)
+        self.layout().addWidget(QLabel("to:"))
+        self.cell_type_box: QComboBox = QComboBox()
+        self.layout().addWidget(self.cell_type_box)
+        self.run_button = QPushButton("Ingress Points")
+        self.run_button.clicked.connect(self.run)
+        self.layout().addWidget(self.run_button)
+        self.resetting_lock = Lock()
+        # viewer callbacks
+        napari_viewer.layers.events.inserted.connect(self.reset_boxes)
+        napari_viewer.layers.events.removed.connect(self.reset_boxes)
+        self.reset_boxes(None)
+
+    def reset_boxes(self, event):
+        _ = event
+        if self.resetting_lock.locked():
+            return
+        assert self.resetting_lock.acquire(blocking=False)
+        c3d = get_n3d_counter(self.viewer)
+        self.resetting_lock.release()
+        possible_celltype_boxes = [
+            l.layer.name for l in c3d.cell_type_gui_and_data
+        ]
+        n3d_counter_names = possible_celltype_boxes + [
+            c3d.out_of_slice_points.name,
+            c3d.pointer.name
+        ]
+        reset_box(
+            self.cell_type_box,
+            possible_celltype_boxes,
+        )
+        reset_box(
+            self.points_box,
+            [
+                l.name
+                for l in self.viewer.layers
+                if isinstance(l, Points) and l.name not in n3d_counter_names
+            ],
+        )
+        if bool(
+            self.points_box.currentText() and self.cell_type_box.currentText()
+        ):
+            self.run_button.setDisabled(False)
+        else:
+            self.run_button.setDisabled(True)
+
+    def run(self, *args, **kwargs):
+        _ = args
+        _ = kwargs
+        point_layer = self.viewer.layers[self.points_box.currentText()]
+        cell_type_layer = self.viewer.layers[self.cell_type_box.currentText()]
+        if TYPE_CHECKING:
+            assert isinstance(cell_type_layer, Points)
+        coordinates = np.array(
+            [
+                cell_type_layer.world_to_data(point_layer.data_to_world(d))
+                for d in point_layer.data
+            ]
+        )
+        [cell_type_layer.add(c) for c in coordinates]
