@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 
 import napari
-from napari.layers import Points, Labels
+from napari.layers import Points, Labels, Image
 from napari.utils._proxies import PublicOnlyProxy
 import numpy as np
 import pandas as pd
@@ -35,6 +35,7 @@ from .celltype_config import (
     process_cell_type_config,
     to_hex,
 )
+from .worker_functions import reconstruct_selected
 
 DEFUALT_CONFIG = [
     CellTypeConfig(keybind="q", name="Cell type 1", color="g"),
@@ -643,6 +644,7 @@ class ReconstructSelected(QWidget):
         napari_viewer.layers.events.inserted.connect(self.reset_boxes)
         napari_viewer.layers.events.removed.connect(self.reset_boxes)
         self.reset_boxes(None)
+        self.output_layer: Image | None = None
 
     def reset_boxes(self, event):
         _ = event
@@ -666,50 +668,25 @@ class ReconstructSelected(QWidget):
         else:
             self.run_button.setDisabled(True)
 
+    def process_output(self, reconstruct_selected_out: dict):
+        self.run_button.setEnabled(True)
+        self.run_button.setChecked(False)
+        if not reconstruct_selected_out:
+            return
+        out = self.viewer.add_image(**reconstruct_selected_out)
+        assert isinstance(out, Image)
+        self.output_layer = out
+
     def run(self, *args, **kwargs):
         _ = args
         _ = kwargs
         point_layer = self.viewer.layers[self.points_box.currentText()]
-        name = point_layer.name
         labels_layer = self.viewer.layers[self.labels_box.currentText()]
-        coordinates = np.array(
-            [
-                np.round(
-                    labels_layer.world_to_data(point_layer.data_to_world(d))
-                ).astype(int)
-                for d in point_layer.data
-            ]
-        )
-        if len(coordinates) == 0:
-            print("No points to reconstruct")
-            return
-        if TYPE_CHECKING:
-            assert isinstance(coordinates, np.ndarray)
-        labels_data = labels_layer.data
-        max_coords = coordinates.max(axis=0)
-        if np.any(max_coords > labels_data.shape):
-            illegal_coords_mask = (coordinates > labels_data.shape).any(axis=1)
-            bad_points = coordinates[illegal_coords_mask]
-            print(f"skipping points out of bounds at {bad_points}")
-            coordinates = coordinates[~illegal_coords_mask]
-        labels = labels_layer.data[tuple(coordinates.T)]
-        if 0 in labels:
-            label_mask = labels == 0
-            bad_points = coordinates[label_mask]
-            labels = labels[~label_mask]
-            print(f"skipping points outside a label at {bad_points}")
-        reconstruction_data = (
-            np.isin(labels_data, labels).astype(np.uint8) * 255
-        )
-        return self.viewer.add_image(
-            reconstruction_data,
-            scale=labels_layer.scale,
-            translate=labels_layer.translate,
-            affine=labels_layer.affine,
-            name=f"{name} reconstruction",
-            blending="additive",
-            rendering="iso",
-        )
+        self.run_button.setChecked(True)
+        self.run_button.setEnabled(False)
+        worker = reconstruct_selected(point_layer, labels_layer)
+        worker.returned.connect(self.process_output)
+        worker.start()
 
 
 class IngressPoints(QWidget):
@@ -733,6 +710,8 @@ class IngressPoints(QWidget):
         self.layout().addWidget(self.cell_type_box)
         self.run_button = QPushButton("Ingress Points")
         self.run_button.clicked.connect(self.run)
+        # needed to keep it pushed while long running task runs in worker thread
+        self.run_button.setCheckable(True)
         self.layout().addWidget(self.run_button)
         self.resetting_lock = Lock()
         # viewer callbacks
@@ -752,7 +731,7 @@ class IngressPoints(QWidget):
         ]
         n3d_counter_names = possible_celltype_boxes + [
             c3d.out_of_slice_points.name,
-            c3d.pointer.name
+            c3d.pointer.name,
         ]
         reset_box(
             self.cell_type_box,

@@ -7,7 +7,12 @@ try:
 except ImportError:
     __version__ = "unknown"
 
-from ._widget import Count3D, ReconstructSelected, get_n3d_counter, IngressPoints
+from ._widget import (
+    Count3D,
+    ReconstructSelected,
+    get_n3d_counter,
+    IngressPoints,
+)
 from .celltype_config import CellTypeConfig
 
 __all__ = (
