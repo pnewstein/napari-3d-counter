@@ -12,6 +12,9 @@ contributions:
     - id: napari-3d-counter.make_ingress_points
       python_name: napari_3d_counter._widget:IngressPoints
       title: Make widget for moving a points layer into Count 3D
+    - id: napari-3d-counter.make_split_on_shapes
+      python_name: napari_3d_counter._widget:SplitOnShapes
+      title: Make widget for splitting points by shape
     - id: napari-3d-counter.save
       python_name: napari_3d_counter.commands:save
       title: Save cell counts
@@ -31,3 +34,5 @@ contributions:
       display_name: Reconstruct Selected
     - command: napari-3d-counter.make_ingress_points
       display_name: Ingress Points
+    - command: napari-3d-counter.make_split_on_shapes
+      display_name: Split on Shapes

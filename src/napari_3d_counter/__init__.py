@@ -12,6 +12,7 @@ from ._widget import (
     ReconstructSelected,
     get_n3d_counter,
     IngressPoints,
+    SplitOnShapes,
 )
 from .celltype_config import CellTypeConfig
 
@@ -21,4 +22,5 @@ __all__ = (
     "CellTypeConfig",
     "get_n3d_counter",
     "IngressPoints",
+    "SplitOnShapes",
 )

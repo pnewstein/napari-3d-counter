@@ -11,12 +11,13 @@ from typing import TYPE_CHECKING
 
 
 import napari
-from napari.layers import Points, Labels, Image
+from napari.layers import Points, Labels, Image, Shapes
 from napari.utils._proxies import PublicOnlyProxy
 import numpy as np
 import pandas as pd
 from napari.utils.events import Event
 from napari.utils.color import ColorValue
+from napari.qt.threading import create_worker
 from qtpy.QtCore import Qt  # type: ignore
 from qtpy.QtWidgets import (  # pylint: disable=no-name-in-module
     QFileDialog,
@@ -27,6 +28,8 @@ from qtpy.QtWidgets import (  # pylint: disable=no-name-in-module
     QVBoxLayout,
     QWidget,
     QComboBox,
+    QTableWidget,
+    QTableWidgetItem,
 )
 
 from .celltype_config import (
@@ -35,7 +38,7 @@ from .celltype_config import (
     process_cell_type_config,
     to_hex,
 )
-from .worker_functions import reconstruct_selected
+from .aux_functions import _reconstruct_selected, split_on_shapes
 
 DEFUALT_CONFIG = [
     CellTypeConfig(keybind="q", name="Cell type 1", color="g"),
@@ -45,10 +48,20 @@ DEFUALT_CONFIG = [
 ]
 
 
+def _create_summary_table(data: pd.DataFrame) -> pd.DataFrame:
+    """
+    creates a summary table with columns "CellType", "Shape", "count"
+    """
+    out = data.groupby(["name", "shape_idx"]).count()["x"].reset_index()
+    out.columns = ["CellType", "Shape", "count"]
+    return out
+
+
 def get_n3d_counter(viewer: "napari.Viewer") -> "Count3D":
     """
     Gets Count3D if it exists else adds it as a dock widget
     """
+    # napari 0.6.2 only
     try:
         c3d = next(
             w
@@ -613,9 +626,10 @@ def reset_box(box: QComboBox, values: list[str]):
     resets a combo box to a new set of values
     """
     old_value = box.currentText()
-    box.addItems(values)
+    box.clear()
     # avoid repeat labels
-    if old_value in set(values):
+    box.addItems(list(dict.fromkeys(values)))
+    if old_value in values:
         box.setCurrentText(old_value)
 
 
@@ -647,6 +661,10 @@ class ReconstructSelected(QWidget):
         self.output_layer: Image | None = None
 
     def reset_boxes(self, event):
+        """
+        A callback when the layers are changed. make sure that all of the boxes
+        have valid layer names and that the run button is only enabled
+        """
         _ = event
         if self.resetting_lock.locked():
             return
@@ -669,6 +687,11 @@ class ReconstructSelected(QWidget):
             self.run_button.setDisabled(True)
 
     def process_output(self, reconstruct_selected_out: dict):
+        """
+        A callback for after processing worker completes
+        resets button state, adds the image layer and updates the widget object
+        to reflect the new layer
+        """
         self.run_button.setEnabled(True)
         self.run_button.setChecked(False)
         if not reconstruct_selected_out:
@@ -678,13 +701,19 @@ class ReconstructSelected(QWidget):
         self.output_layer = out
 
     def run(self, *args, **kwargs):
+        """
+        callback for run button
+        Starts a reconstruct selected worker
+        """
         _ = args
         _ = kwargs
         point_layer = self.viewer.layers[self.points_box.currentText()]
         labels_layer = self.viewer.layers[self.labels_box.currentText()]
         self.run_button.setChecked(True)
         self.run_button.setEnabled(False)
-        worker = reconstruct_selected(point_layer, labels_layer)
+        worker = create_worker(
+            _reconstruct_selected, point_layer, labels_layer
+        )
         worker.returned.connect(self.process_output)
         worker.start()
 
@@ -720,6 +749,10 @@ class IngressPoints(QWidget):
         self.reset_boxes(None)
 
     def reset_boxes(self, event):
+        """
+        A callback when the layers are changed. make sure that all of the boxes
+        have valid layer names and that the run button is only enabled
+        """
         _ = event
         if self.resetting_lock.locked():
             return
@@ -753,6 +786,10 @@ class IngressPoints(QWidget):
             self.run_button.setDisabled(True)
 
     def run(self, *args, **kwargs):
+        """
+        Callback for run button
+        Main function to ingress points
+        """
         _ = args
         _ = kwargs
         point_layer = self.viewer.layers[self.points_box.currentText()]
@@ -766,3 +803,158 @@ class IngressPoints(QWidget):
             ]
         )
         [cell_type_layer.add(c) for c in coordinates]
+
+
+class SplitOnShapes(QWidget):
+    """
+    Interface for spliting cell counts by what shape they are in
+    """
+
+    def __init__(
+        self,
+        napari_viewer: napari.Viewer,
+    ):
+        super().__init__()
+        self.viewer = napari_viewer
+        # initialize qt GUI
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(QLabel("Shapes layer:"))
+        self.shapes_box: QComboBox = QComboBox()
+        self.layout().addWidget(self.shapes_box)
+        self.tbl = QTableWidget()
+        self.tbl.setSelectionBehavior(self.tbl.SelectItems)
+        self.tbl.setSelectionMode(self.tbl.ExtendedSelection)
+        self.layout().addWidget(self.tbl)
+        self.run_button = QPushButton("Split on Shapes")
+        self.run_button.clicked.connect(self.run)
+        # needed to keep it pushed while long running task runs in worker thread
+        self.run_button.setCheckable(True)
+        self.layout().addWidget(self.run_button)
+        row_layout = QHBoxLayout()
+        save_summary_button = QPushButton("Save Summary")
+        save_summary_button.clicked.connect(self.save_summary)
+        row_layout.addWidget(save_summary_button)
+        save_points = QPushButton("Save cells")
+        save_points.clicked.connect(self.save_points)
+        row_layout.addWidget(save_points)
+        self.layout().addLayout(row_layout)
+        self.resetting_lock = Lock()
+        self.df: pd.DataFrame | None = None
+        # viewer callbacks
+        napari_viewer.layers.events.inserted.connect(self.reset_boxes)
+        napari_viewer.layers.events.removed.connect(self.reset_boxes)
+        self.reset_boxes(None)
+        self.update_table(None)
+        self.run_button.setEnabled(False)
+
+    def reset_boxes(self, event):
+        """
+        A callback when the layers are changed. make sure that all of the boxes
+        have valid layer names and that the run button is only enabled
+        """
+        _ = event
+        if self.resetting_lock.locked():
+            return
+        assert self.resetting_lock.acquire(blocking=False)
+        self.resetting_lock.release()
+        reset_box(
+            self.shapes_box,
+            [l.name for l in self.viewer.layers if isinstance(l, Shapes)],
+        )
+        if self.shapes_box.currentText():
+            self.run_button.setDisabled(False)
+        else:
+            self.run_button.setDisabled(True)
+
+    def save_summary(self):
+        """
+        Launches a GUI to save the summary file
+        """
+        df = self.df
+        if df is None:
+            print('Error: run "Split on Shapes" firt')
+            return
+        summary = _create_summary_table(df)
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        file_name, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save File",
+            "summary.csv",
+            "CSV Files(*.csv);;File(*)",
+            options=options,
+        )
+        if file_name:
+            summary.to_csv(file_name, index=False)
+
+    def _get_points_df(self) -> pd.DataFrame | None:
+        """
+        Converts the internal df to one that can be read by Count 3D
+        """
+        if self.df is None:
+            print('Error: run "Split on Shapes" firt')
+            return
+        out = pd.DataFrame(self.df[["z", "y", "x"]])
+        out.insert(0, "cell_type", out.index)
+        out.index = range(len(out))
+        return out
+
+    def save_points(self):
+        """
+        Launches a GUI to save points in a way that can be read by Count 3D
+        such that each shape * cell type becomes an individual cell type
+        """
+        points_df = self.get_points_df()
+        if points_df is None:
+            return
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        file_name, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save File",
+            "shape_segmented_points.csv",
+            "CSV Files(*.csv);;File(*)",
+            options=options,
+        )
+        if file_name:
+            points_df.to_csv(file_name, index=False)
+
+    def update_table(self, data: pd.DataFrame | None):
+        """
+        Callback for aux_functions split_on_shapes
+        Updates the GUI table from a pandas DataFrame. self.df is also updated to be update_table.
+        """
+        self.df = data
+        if data is None:
+            data = pd.DataFrame(
+                np.nan, columns=["CellType", "Shape", "count"], index=range(0)
+            )
+        else:
+            data = _create_summary_table(data)
+        self.tbl.setRowCount(len(data))
+        self.tbl.setColumnCount(len(data.columns))
+        self.tbl.setHorizontalHeaderLabels(data.columns.astype(str).tolist())
+        for row in range(len(data)):
+            for col in range(len(data.columns)):
+                val = str(data.iat[row, col])
+                self.tbl.setItem(row, col, QTableWidgetItem(val))
+        self.tbl.setSortingEnabled(True)
+        self.tbl.resizeColumnsToContents()
+        self.run_button.setEnabled(True)
+        self.run_button.setChecked(False)
+
+    def run(self, *args, **kwargs):
+        """
+        Callback for run buttion
+        starts a worker for split_on_shapes
+        """
+        _ = args
+        _ = kwargs
+        shapes_layer = self.viewer.layers[self.shapes_box.currentText()]
+        c3d = get_n3d_counter(self.viewer)
+        celltypes = [l.layer for l in c3d.cell_type_gui_and_data]
+        self.run_button.setChecked(True)
+        self.run_button.setEnabled(False)
+        worker = create_worker(split_on_shapes, celltypes, shapes_layer)
+        worker.returned.connect(self.update_table)
+        worker.start()
