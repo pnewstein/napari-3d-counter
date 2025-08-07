@@ -170,6 +170,11 @@ which have been counted as a particular cell type.
 This plugin takes a points layer and adds the points to the selected cell_type
 layer. This can be usefull if you want to manualy count cells after cell identification.
 
+### Split on Shapes
+This plugin can be used to subset a celltype into several groups based on their
+x-y location. Simply draw a shape that surounds your cells (perhaps in a
+segment) and run this plugin to get a list of cells of each type in each shape.
+
 ## Contributing
 
 Contributions are very welcome. Tests can be run with [tox], please ensure
