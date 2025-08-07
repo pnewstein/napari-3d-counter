@@ -12,6 +12,7 @@ from napari.utils.color import ColorValue
 MatplotlibColor = Union[
     Tuple[float, float, float], Tuple[float, float, float, float], str
 ]
+"""Slightly more restrictive than ColorValueParam"""
 
 
 def to_hex(color: np.ndarray) -> str:
@@ -28,7 +29,7 @@ DEFAULT_COLOR_SEQUENCE = [
     "#00ffffff",  # c
     "#0000ffff",  # b
     "#ff00ffff",  # m
-    "#00ff00ff",  # g
+    "#00700090",  # g
     "#ffffffff",  # w
 ]
 DEFAULT_OUTLINE_SIZE = 10
@@ -41,7 +42,8 @@ DEFAULT_EDGE_WIDTH = 0.05
 @dataclass(frozen=True)
 class CellTypeConfig:  # pylint: disable=too-many-instance-attributes
     """
-    Data type for specifying configuration of celltype states
+    Data type for specifying configuration of celltype states where None is a
+    possible argument see CellTypeConfigNotOptional for a version without None
     """
 
     name: Optional[str] = None
@@ -65,7 +67,8 @@ class CellTypeConfig:  # pylint: disable=too-many-instance-attributes
 @dataclass(frozen=True)
 class CellTypeConfigNotOptional:  # pylint: disable=too-many-instance-attributes
     """
-    Data type for specifying configuration of celltype states
+    Data type for specifying configuration of celltype states. See
+    CellTypeConfig for a userfriendly class where all fields can be None
     """
 
     name: str
