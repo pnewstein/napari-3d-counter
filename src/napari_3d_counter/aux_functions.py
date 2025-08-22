@@ -1,7 +1,6 @@
 """
-This module contains functions that can be used indepentetly of N3dCounter.
+This module contains functions that can be used independently of N3dCounter.
 These functions are also used in the aux widgets
-
 """
 
 from typing import TYPE_CHECKING
@@ -14,7 +13,7 @@ import pandas as pd
 
 def _reconstruct_selected(point_layer: Points, labels_layer: Labels) -> dict:
     """
-    this private function contains the core logic of reconstruting selected.
+    this private function contains the core logic of reconstructing selected.
     It returns the empty dict as an error state. The ouput is the kwargs for add_image
     """
     name = point_layer.name

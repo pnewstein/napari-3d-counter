@@ -40,7 +40,7 @@ from .celltype_config import (
 )
 from .aux_functions import _reconstruct_selected, split_on_shapes
 
-DEFUALT_CONFIG = [
+DEFAULT_CONFIG = [
     CellTypeConfig(keybind="q", name="Cell type 1", color="g"),
     CellTypeConfig(keybind="w", name="Cell type 2", color="r"),
     CellTypeConfig(keybind="e", name="Cell type 3", color="c"),
@@ -205,12 +205,12 @@ class Count3D(QWidget):  # pylint: disable=R0902
         super().__init__()
         # handle configuration
         if cell_type_config is None:
-            cell_type_config = DEFUALT_CONFIG
+            cell_type_config = DEFAULT_CONFIG
         if len(cell_type_config) == 0:
             print(
                 "Cannot initialize with no cell types. Using default cell types"
             )
-            cell_type_config = DEFUALT_CONFIG
+            cell_type_config = DEFAULT_CONFIG
         self.initial_config = process_cell_type_config(cell_type_config)
         """initial because it doesn't take into account gui changes"""
         # viewer is needed to add layers
@@ -340,7 +340,6 @@ class Count3D(QWidget):  # pylint: disable=R0902
         # dispatch point to appropriate layer
         # implicitly calls self.handle_data_changed
         current_point_layer = current_cell_type.layer
-        # import pudb; pudb.set_trace()
         current_point_layer.add(coords=pointer_coords)
         # hack to unselect last added point
         # prevent layer specific handlers from updating
@@ -433,7 +432,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
 
     def change_state_to(self, state: CellTypeGuiAndData, *args, **kwargs):
         """
-        Changes the state
+        Changes the state to a different celltype
         """
         # handler for qt events
         _ = args
@@ -891,7 +890,7 @@ class SplitOnShapes(QWidget):
         Converts the internal df to one that can be read by Count 3D
         """
         if self.df is None:
-            print('Error: run "Split on Shapes" firt')
+            print('Error: run "Split on Shapes" first')
             return
         out = pd.DataFrame(self.df[["z", "y", "x"]])
         out.insert(0, "cell_type", out.index)

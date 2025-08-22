@@ -1,5 +1,5 @@
 """
-register commands for the command pallette
+register commands for the command palette
 """
 
 from typing import TYPE_CHECKING

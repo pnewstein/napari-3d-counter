@@ -12,7 +12,7 @@ from napari.utils.color import ColorValue
 MatplotlibColor = Union[
     Tuple[float, float, float], Tuple[float, float, float, float], str
 ]
-"""Slightly more restrictive than ColorValueParam"""
+"""Slightly more restrictive than ColorValue"""
 
 
 def to_hex(color: np.ndarray) -> str:
@@ -93,12 +93,12 @@ def fill_in_defaults(
     requests: List[Optional[str]], defaults: List[str]
 ) -> List[str]:
     """
-    Fills in defaults from a list by looking up a unique defalt to use
+    Fills in defaults from a list by looking up a unique default to use
     """
     used_defaults = set(defaults).intersection(requests)
     # discard used defaults
     default_list = [d for d in defaults if d not in used_defaults]
-    # ensure that we will never run out of defauts
+    # ensure that we will never run out of defaults
     last_default = default_list[-1] if default_list else defaults[-1]
     default_list = default_list + ([last_default] * len(requests))
     # fill in Nones with a next unique default
