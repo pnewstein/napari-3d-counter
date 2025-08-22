@@ -887,7 +887,7 @@ class SplitOnShapes(QWidget):
         if file_name:
             summary.to_csv(file_name, index=False)
 
-    def _get_points_df(self) -> pd.DataFrame | None:
+    def get_points_df(self) -> pd.DataFrame | None:
         """
         Converts the internal df to one that can be read by Count 3D
         """
