@@ -845,7 +845,6 @@ class SplitOnShapes(QWidget):
         napari_viewer.layers.events.removed.connect(self.reset_boxes)
         self.reset_boxes(None)
         self.update_table(None)
-        self.run_button.setEnabled(False)
 
     def reset_boxes(self, event):
         """
@@ -856,11 +855,11 @@ class SplitOnShapes(QWidget):
         if self.resetting_lock.locked():
             return
         assert self.resetting_lock.acquire(blocking=False)
-        self.resetting_lock.release()
         reset_box(
             self.shapes_box,
             [l.name for l in self.viewer.layers if isinstance(l, Shapes)],
         )
+        self.resetting_lock.release()
         if self.shapes_box.currentText():
             self.run_button.setDisabled(False)
         else:
