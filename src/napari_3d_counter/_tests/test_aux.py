@@ -125,6 +125,6 @@ def test_split_on_shapes(make_napari_viewer, qtbot):
     sos.run()
     qtbot.waitUntil(lambda: sos.df is not None)
     assert len(sos.df) == 3
-    c3d.read_points_from_df(sos._get_points_df())
+    c3d.read_points_from_df(sos.get_points_df())
     assert len(c3d.cell_type_gui_and_data) == 6
     assert len(_create_summary_table(sos.df)) == 2
