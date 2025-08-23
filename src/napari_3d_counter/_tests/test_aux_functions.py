@@ -6,7 +6,6 @@ import sys
 from pathlib import Path
 
 import numpy as np
-import numpy as no
 
 from napari_3d_counter import aux_functions
 
@@ -63,6 +62,30 @@ shapes_data = [
         ],
     ),
 ]
+
+
+def test_reconstruct_selected(make_napari_viewer):
+    viewer = make_napari_viewer()
+    points = [(12, 100, 30), (7, 150, 100), (10, 20, 20), (1, 2, 2)]
+    labels = make_sample_data(points)
+    all_points = np.concatenate(
+        (
+            np.array(
+                [
+                    [0, 0, -50],
+                    [3, 46, 82],
+                    [3, 156, 60],
+                    [3, 72, 185],
+                    [3, 73, 274],
+                ]
+            ),
+            points,
+        )
+    )
+    p_layer = viewer.add_points(all_points)
+    l_layer = viewer.add_labels(labels)
+    out = aux_functions.reconstruct_selected(viewer, p_layer, l_layer)
+    assert out.data.sum() > 1
 
 
 def test_select_only_correct(make_napari_viewer):

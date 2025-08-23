@@ -30,8 +30,10 @@ def _reconstruct_selected(point_layer: Points, labels_layer: Labels) -> dict:
         return {}
     labels_data = labels_layer.data
     max_coords = coordinates.max(axis=0)
-    if np.any(max_coords > labels_data.shape):
-        illegal_coords_mask = (coordinates > labels_data.shape).any(axis=1)
+    if np.any(max_coords > labels_data.shape) or coordinates.min() < 0:
+        illegal_coords_mask = (
+            ([0, 0, 0] > coordinates) | (coordinates > labels_data.shape)
+        ).any(axis=1)
         bad_points = coordinates[illegal_coords_mask]
         print(f"skipping points out of bounds at {bad_points}")
         coordinates = coordinates[~illegal_coords_mask]
