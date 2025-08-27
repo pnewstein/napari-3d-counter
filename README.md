@@ -29,8 +29,12 @@ You can install `napari-3d-counter` via [pip]:
 
     pip install napari-3d-counter
 
+or conda
+    
+    conda install -c conda-forge napari-3d-counter
 
-To install latest development version :
+
+To install latest development version:
 
     pip install git+https://github.com/pnewstein/napari-3d-counter.git
 
@@ -76,7 +80,7 @@ https://github.com/pnewstein/napari-3d-counter/assets/30813691/c04ca5e3-9f48-4dd
 
 ### Remove a particular cell
 
-To remove a particular cell. Change to the layer containing the cell you would
+To remove a particular cell, change to the layer containing the cell you would
 like to remove. Then select the `select points` tool to select the points to
 delete, then use `Delete selected points` to delete those points
 
@@ -135,17 +139,17 @@ To run Count3D with custom configuration, paste the following code into your nap
 from napari_3d_counter import Count3D, CellTypeConfig
 
 cell_type_config = [
-    # The first celltype is called "cq+eve+" and should be green
+    # The first cell type is called "cq+eve+" and should be green
     CellTypeConfig(
         name="cq+eve+",
         color="g"
     ),
-    # The first celltype is called "cq+eve-" and should be cyan
+    # The first cell type is called "cq+eve-" and should be cyan
     CellTypeConfig(
         name="cq+eve-",
         color="c"
     ),
-    # The first celltype is called "cq-eve+" and should be red
+    # The first cell type is called "cq-eve+" and should be red
     CellTypeConfig(
         name="cq-eve+",
         color="r"
@@ -168,11 +172,11 @@ which have been counted as a particular cell type.
 
 ### Ingress Points
 This plugin takes a points layer and adds the points to the selected cell_type
-layer. This can be usefull if you want to manualy count cells after cell identification.
+layer. This can be useful if you want to manually count cells after cell identification.
 
 ### Split on Shapes
-This plugin can be used to subset a celltype into several groups based on their
-x-y location. Simply draw a shape that surounds your cells (perhaps in a
+This plugin can be used to subset a cell type into several groups based on their
+x-y location. Simply draw a shape that surrounds your cells (perhaps in a
 segment) and run this plugin to get a list of cells of each type in each shape.
 
 ## Contributing
