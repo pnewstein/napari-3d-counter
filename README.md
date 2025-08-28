@@ -25,13 +25,14 @@ https://napari.org/stable/plugins/index.html
 
 ## Installation
 
-You can install `napari-3d-counter` via [pip]:
+You can install `napari-3d-counter` via conda
+    
+    conda install -c conda-forge napari-3d-counter pyqt
+
+or pip
 
     pip install napari-3d-counter
 
-or conda
-    
-    conda install -c conda-forge napari-3d-counter
 
 
 To install latest development version:
@@ -41,7 +42,13 @@ To install latest development version:
 
 ##  Count3D Usage
 
-Count3D can be launched from the plugin menu
+First launch napari with the `napari` command or interactively through ipython
+```python
+import napari
+viewer = napari.Veiwer()
+```
+Count3D can be launched from the plugin menu of napari, or through the command palette (ctrl shift P)
+
 
 ### Adding a cell
 
