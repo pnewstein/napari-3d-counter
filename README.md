@@ -7,7 +7,7 @@
 [![codecov](https://codecov.io/gh/pnewstein/napari-3d-counter/branch/main/graph/badge.svg)](https://codecov.io/gh/pnewstein/napari-3d-counter)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-3d-counter)](https://napari-hub.org/plugins/napari-3d-counter)
 
-A simple plugin for counting objects in 3D images
+A plugin for manually counting objects in 3D images
 
 ![small](https://github.com/pnewstein/napari-3d-counter/assets/30813691/9d524c31-f23b-4b34-bcb6-ec3bb415cdae)
 
@@ -15,15 +15,18 @@ A simple plugin for counting objects in 3D images
 
 This [napari] plugin was generated with [Cookiecutter] using [@napari]'s [cookiecutter-napari-plugin] template.
 
-<!--
-Don't miss the full getting started guide to set up your new package:
-https://github.com/napari/cookiecutter-napari-plugin#getting-started
+## Prerequisites
 
-and review the napari docs for plugin developers:
-https://napari.org/stable/plugins/index.html
--->
+It is recommended to use conda to install Napari-3D-Counter and napari.
+Installation instructions for the miniconda distribution of conda can be found here: 
+
+[https://www.anaconda.com/docs/getting-started/miniconda/install](https://www.anaconda.com/docs/getting-started/miniconda/install)
+
+
 
 ## Installation
+
+
 
 You can install `napari-3d-counter` via conda
     
@@ -45,7 +48,7 @@ To install latest development version:
 First launch napari with the `napari` command or interactively through ipython
 ```python
 import napari
-viewer = napari.Veiwer()
+viewer = napari.Viewer()
 ```
 Count3D can be launched from the plugin menu of napari, or through the command palette (ctrl shift P)
 
