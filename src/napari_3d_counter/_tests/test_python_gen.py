@@ -6,8 +6,17 @@ from napari_3d_counter import (
     Count3D,
     CellTypeConfig,  # type: ignore
 )
+from napari_3d_counter._widget import from_numpy_to_base_python
 
 import numpy as np
+
+
+def test_from_numpy_to_base_python():
+    assert isinstance(from_numpy_to_base_python(np.array(5)), int)
+    assert isinstance(from_numpy_to_base_python(np.str_("test")), str)
+    assert isinstance(from_numpy_to_base_python(np.float64(0.5)), float)
+    assert isinstance(from_numpy_to_base_python(np.array([0, 1, 2])), list)
+    assert isinstance(from_numpy_to_base_python([0, 1, 2]), list)
 
 
 def test_code_gen_name(make_napari_viewer):
@@ -26,6 +35,7 @@ def test_code_gen_color(make_napari_viewer):
     cell_type = my_widget.cell_type_gui_and_data[0]
     cell_type.layer.current_border_color = np.array([1, 1, 1, 1])
     python_string = repr(cell_type.get_calculated_config(1))
+    assert "np." not in python_string
     config = eval(python_string)
     assert config.color == "#ffffffff"
 

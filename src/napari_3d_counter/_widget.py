@@ -7,7 +7,7 @@ from functools import partial
 from pathlib import Path
 from typing import List, Optional, Literal
 from threading import Lock
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 
 import napari
@@ -111,6 +111,19 @@ class NamedPartial:
         return self.func.__hash__(*args, **kwargs)
 
 
+def from_numpy_to_base_python(possible_numpy: Any) -> Any:
+    """
+    converts a numpy object into a python object using
+    numpy's tolist or item function.
+    non numpy objects pass through
+    """
+    if isinstance(possible_numpy, np.ndarray):
+        return possible_numpy.tolist()
+    elif isinstance(possible_numpy, np.generic):
+        return possible_numpy.item()
+    return possible_numpy
+
+
 @dataclass
 class CellTypeGuiAndData:
     """
@@ -182,13 +195,15 @@ class CellTypeGuiAndData:
 
         return CellTypeConfig(
             name=self.layer.name,
-            out_of_slice_point_size=out_of_slice_points_size,
+            out_of_slice_point_size=from_numpy_to_base_python(
+                out_of_slice_points_size
+            ),
             color=to_hex(ColorValue(self.layer.current_border_color)),
             keybind=self.keybind,
             symbol=self.layer.current_symbol.value,  # type: ignore
-            outline_size=current_size,
-            face_color=self.layer.current_face_color,
-            edge_width=edge_width,
+            outline_size=from_numpy_to_base_python(current_size),
+            face_color=to_hex(ColorValue(self.layer.current_border_color)),
+            edge_width=from_numpy_to_base_python(edge_width),
         )
 
 
