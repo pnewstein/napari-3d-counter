@@ -21,7 +21,7 @@ bibliography: paper.bib
 
 A common task across biological fields is to quantify the number of objects in
 an image. Often, the most efficient solution to this problem is to have an
-expert manually count those objects. Our package, Napari-3D-Counter, includes
+expert manually count those objects. This package, Napari-3D-Counter, includes
 the Count3D widget, a user-friendly interface to allow an expert to quickly
 count objects in 2D or 3D images visualized using napari, as well as auxiliary
 plugins that help to integrate Count3D into upstream and downstream analyses.
@@ -102,6 +102,8 @@ plugin, perhaps due to its ergonomics and stability.
 
 This work was funded by the NIH grant: Genetic and Molecular Studies of
 Neurogenesis 5R01HD027056-33 and by the NIH Genetics training program
-T32GM149387 as well as by the Howard Hughes Medical Institute.
+T32GM149387 as well as by the Howard Hughes Medical Institute. Thanks to
+Elena Barth, Derek Epiney, Kasey Drake, Chundi Xu, Susannah Lawhorn, and
+Chris Q. Doe for their feedback.
 
 # References
