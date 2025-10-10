@@ -806,17 +806,21 @@ class IngressPoints(QWidget):
         """
         _ = args
         _ = kwargs
+        c3d = get_n3d_counter(self.viewer)
         point_layer = self.viewer.layers[self.points_box.currentText()]
-        cell_type_layer = self.viewer.layers[self.cell_type_box.currentText()]
-        if TYPE_CHECKING:
-            assert isinstance(cell_type_layer, Points)
+        ctgad = next(
+            c
+            for c in c3d.cell_type_gui_and_data
+            if c.layer.name == self.cell_type_box.currentText()
+        )
+        c3d.change_state_to(ctgad)
         coordinates = np.array(
             [
-                cell_type_layer.world_to_data(point_layer.data_to_world(d))
+                c3d.pointer.world_to_data(point_layer.data_to_world(d))
                 for d in point_layer.data
             ]
         )
-        [cell_type_layer.add(c) for c in coordinates]
+        [c3d.pointer.add(c) for c in coordinates]
 
 
 class SplitOnShapes(QWidget):

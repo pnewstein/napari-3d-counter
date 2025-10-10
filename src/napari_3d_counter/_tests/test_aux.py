@@ -105,6 +105,7 @@ def test_ingress_points(make_napari_viewer):
         cell_type_layer.get_value(click_world_coords, world=True) is not None
     )
     c3d = get_n3d_counter(viewer)
+    assert len(c3d.out_of_slice_points.data) == 1
     c3d.undo()
     assert cell_type_layer.get_value(click_world_coords, world=True) is None
 
