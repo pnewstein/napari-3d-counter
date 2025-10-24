@@ -94,9 +94,10 @@ labels containing a Count3D cell into an image layer, which can then be used to
 create 2D or 3D images. Overall, these auxiliary plugins help to integrate
 Count3D into more complex, semi-automated cell counting processes. 
 
-The utility of this plugin is also reflected in its use. With over 10,000
-downloads from conda-forge, a sizable number of users are likely using this
-plugin, perhaps due to its ergonomics and stability.
+The utility of this plugin is also reflected in its use. It has been used in
+scientific publications [@drakeFer3UniquelyExpressed2025;
+@satoVIIITubulinIdentifies2025] and has over 15,000 downloads on conda-forge.
+This widespread use is likely due to the plugin's ergonomics and stability.
 
 # Acknowledgements
 
