@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Optional
 import re
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -459,19 +460,13 @@ def test_change_face_color(make_napari_viewer):
     )
 
 
-# def test_example_magic_widget(make_napari_viewer, capsys):
-# viewer = make_napari_viewer()
-# layer = viewer.add_image(np.random.random((100, 100)))
+def test_fail_dim_3d(make_napari_viewer):
+    viewer = make_napari_viewer()
+    my_widget = Count3D(viewer, [CellTypeConfig(name="test_name")])
+    viewer.dims.ndisplay = 3
+    with pytest.warns(UserWarning):
+        my_widget.new_pointer_point(Event([np.array([1, 2, 1])]))
 
-# # this time, our widget will be a MagicFactory or FunctionGui instance
-# my_widget = example_magic_widget()
-
-# # if we "call" this object, it'll execute our function
-# my_widget(viewer.layers[0])
-
-# # read captured output and check that it's as we expected
-# captured = capsys.readouterr()
-# assert captured.out == f"you have selected {layer}\n"
 
 if __name__ == "__main__":
     test_color_conflict(napari.Viewer)

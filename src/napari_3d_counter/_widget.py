@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import List, Optional, Literal
 from threading import Lock
 from typing import TYPE_CHECKING, Any
+import warnings
 
 
 import napari
@@ -351,6 +352,9 @@ class Count3D(QWidget):  # pylint: disable=R0902
         assert self.gui_lock.acquire(blocking=False)
         self.pointer.data = np.array([])
         self.gui_lock.release()
+        if self.viewer.dims.ndisplay == 3:
+            warnings.warn("Napari3DCounter only works in 2D mode", UserWarning)
+            return
         current_cell_type = self.pointer_type_state
         # dispatch point to appropriate layer
         # implicitly calls self.handle_data_changed
