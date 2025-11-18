@@ -70,7 +70,7 @@ various cell type counters, and there is a live display of how many cells of
 each type have been counted. Furthermore, saving and loading a single CSV file
 containing the coordinates of all cells from all types is preferable to
 creating separate files for each type. Overall, using Napari-3D-Counter is
-likely to save the expert annotator’s time over using native Napari spots.
+likely to save the expert annotator’s time over using native Napari Points.
 
 Finally, Count3D’s functionality is also similar to the manual spots feature of
 Imaris [@Imaris2024]. In addition to the ergonomic benefits of a bespoke cell
@@ -84,15 +84,16 @@ ReconstructSelected. IngressPoints takes a native napari points layer, perhaps
 created by automated labeling, and turns them into a counted cell type in
 Count3D. SplitOnShapes splits labels of cell types based on spatial
 information. For example, if a user wants to quantify the distribution of cells
-of multiple types across segments, they can use a napari Shapes layer to define
-all the segments in the X and Y axes, and SplitOnShapes will return a count of
-each cell type within each shape. Finally, ReconstructSelected can be used to
-aid in visualizing cells: if a user has a Label layer containing some labels
-corresponding to cells of interest, and other labels not corresponding, perhaps
-created by automated segmentation, ReconstructSelected will convert those
-labels containing a Count3D cell into an image layer, which can then be used to
-create 2D or 3D images. Overall, these auxiliary plugins help to integrate
-Count3D into more complex, semi-automated cell counting processes. 
+of multiple types across a tissue with multiple repeating segments (eg. spinal
+cord), they can use a napari Shapes layer to define all the segments in the X
+and Y axes, and SplitOnShapes will return a count of each cell type within each
+shape. Finally, ReconstructSelected can be used to aid in visualizing cells: if
+a user has a Label layer containing some labels corresponding to cells of
+interest, and other labels not corresponding, perhaps created by automated
+segmentation, ReconstructSelected will convert those labels containing a
+Count3D cell into an image layer, which can then be used to create 2D or 3D
+images. Overall, these auxiliary plugins help to integrate Count3D into more
+complex, semi-automated cell counting processes. 
 
 The utility of this plugin is also reflected in its use. It has been used in
 scientific publications [@drakeFer3UniquelyExpressed2025;
