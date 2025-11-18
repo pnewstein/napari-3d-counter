@@ -188,6 +188,8 @@ cell_type_config = [
 viewer.window.add_dock_widget(Count3D(viewer, cell_type_config=cell_type_config))
 ```
 
+*Usage example can be found in /example/launch_count_3d.py*
+
 ##  Auxiliary plugins
 
 
@@ -198,6 +200,8 @@ viewer.window.add_dock_widget(Count3D(viewer, cell_type_config=cell_type_config)
 This plugin takes a points layer and adds the points to the selected cell type
 layer. This can be useful if you want to manually count cells after cell identification.
 
+*Usage example can be found in /example/launch_ingress_points.py*
+
 ### Split on Shapes
 
 ![Split on Shapes](https://github.com/user-attachments/assets/0d3c12fc-1347-4226-a9b9-9e34dd50577a)
@@ -205,6 +209,8 @@ layer. This can be useful if you want to manually count cells after cell identif
 This plugin can be used to subset a cell type into several groups based on their
 x-y location. Simply draw a shape that surrounds your cells (perhaps in a
 segment) and run this plugin to get a list of cells of each type in each shape.
+
+*Usage example can be found in /example/launch_split_on_shapes.py*
 
 ### Reconstruct Selected
 
@@ -218,6 +224,8 @@ interest, and some other process to create labels (perhaps
 [nsbatwm](https://github.com/haesleinhuepf/napari-segment-blobs-and-things-with-membranes))
 and using Reconstruct Selected to create a new image layer of those labels
 which have been counted as a particular cell type.
+
+*Usage example can be found in /example/launch_reconstruct_selected.py*
 
 ## Contributing
 
