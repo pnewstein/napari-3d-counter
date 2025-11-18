@@ -29,11 +29,11 @@ Installation instructions for the miniconda distribution of conda can be found h
 
 You can install `napari-3d-counter` via conda
     
-    conda create -n n3dc-env -c conda-forge -y napari napari-3d-counter pyqt
+    conda create -n n3dc-env -c conda-forge -y napari napari-3d-counter pyqt python=3.12
     conda activate n3dc-env
 
 
-or pip
+pip
 
     pip install napari-3d-counter
 
@@ -231,6 +231,32 @@ which have been counted as a particular cell type.
 
 Contributions are very welcome. Tests can be run with [tox], please ensure
 the coverage at least stays the same before you submit a pull request.
+
+To contribute, first clone the repository:
+
+    git clone https://github.com/pnewstein/napari-3d-counter
+
+Then install localy:
+    
+    cd napari-3d-counter
+    pip install -e '.[testing]'
+Run unit tests:
+
+    pytest
+
+Run full test suite, ensuring it installs properly:
+
+    tox
+
+## Troubleshooting install
+
+If above conda and pip installs do not work. follow [the
+instructions](https://napari.org/stable/tutorials/fundamentals/installation.html)
+to get a working napari installation. Then install napari-3d counter into that
+environment:
+
+    conda activate napari-env
+    pip install napari-3d-counter
 
 ## License
 
