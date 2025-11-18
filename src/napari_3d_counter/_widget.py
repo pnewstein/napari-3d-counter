@@ -664,9 +664,19 @@ class ReconstructSelected(QWidget):
         self.viewer = napari_viewer
         # initialize qt GUI
         self.setLayout(QVBoxLayout())
+        points_label = QLabel("Cell type:")
+        points_tool_tip = "The Count3D type to reconstruct"
+        points_label.setToolTip(points_tool_tip)
+        self.layout().addWidget(points_label)
         self.points_box: QComboBox = QComboBox()
+        self.points_box.setToolTip(points_tool_tip)
         self.layout().addWidget(self.points_box)
+        labels_label = QLabel("Labels:")
+        labels_tool_tip = "The labels layer that serves as the source for selecting layers containing points of the target cell type for reconstruction"
+        labels_label.setToolTip(labels_tool_tip)
+        self.layout().addWidget(labels_label)
         self.labels_box: QComboBox = QComboBox()
+        self.labels_box.setToolTip(labels_tool_tip)
         self.layout().addWidget(self.labels_box)
         self.run_button = QPushButton("Reconstruct Selected")
         self.run_button.clicked.connect(self.run)
@@ -749,11 +759,19 @@ class IngressPoints(QWidget):
         self.viewer = napari_viewer
         # initialize qt GUI
         self.setLayout(QVBoxLayout())
-        self.layout().addWidget(QLabel("from:"))
+        from_label = QLabel("From:")
+        from_tool_tip = "The Points layer to ingress into Count3D"
+        from_label.setToolTip(from_tool_tip)
+        self.layout().addWidget(from_label)
         self.points_box: QComboBox = QComboBox()
+        self.points_box.setToolTip(from_tool_tip)
         self.layout().addWidget(self.points_box)
-        self.layout().addWidget(QLabel("to:"))
+        to_label = QLabel("To:")
+        to_tool_tip = "The Count3D type to be the destination for the points"
+        to_label.setToolTip(to_tool_tip)
+        self.layout().addWidget(to_label)
         self.cell_type_box: QComboBox = QComboBox()
+        self.cell_type_box.setToolTip(to_tool_tip)
         self.layout().addWidget(self.cell_type_box)
         self.run_button = QPushButton("Ingress Points")
         self.run_button.clicked.connect(self.run)
@@ -840,8 +858,12 @@ class SplitOnShapes(QWidget):
         self.viewer = napari_viewer
         # initialize qt GUI
         self.setLayout(QVBoxLayout())
-        self.layout().addWidget(QLabel("Shapes layer:"))
+        shapes = QLabel("Shapes layer:")
+        shapes_tool_tip = "These shapes divide the Count3D points. Each point must be contained within a shape."
+        shapes.setToolTip(shapes_tool_tip)
+        self.layout().addWidget(shapes)
         self.shapes_box: QComboBox = QComboBox()
+        self.shapes_box.setToolTip(shapes_tool_tip)
         self.layout().addWidget(self.shapes_box)
         self.tbl = QTableWidget()
         self.tbl.setSelectionBehavior(self.tbl.SelectItems)
