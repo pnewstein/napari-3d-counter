@@ -38,6 +38,7 @@ def test_code_gen_color(make_napari_viewer):
     assert "np." not in python_string
     config = eval(python_string)
     assert config.color == "#ffffffff"
+    assert config.face_color != "#ffffffff"
 
 
 def test_config_self(make_napari_viewer):

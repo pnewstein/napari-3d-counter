@@ -203,7 +203,7 @@ class CellTypeGuiAndData:
             keybind=self.keybind,
             symbol=self.layer.current_symbol.value,  # type: ignore
             outline_size=from_numpy_to_base_python(current_size),
-            face_color=to_hex(ColorValue(self.layer.current_border_color)),
+            face_color=to_hex(ColorValue(self.layer.current_face_color)),
             edge_width=from_numpy_to_base_python(edge_width),
         )
 
