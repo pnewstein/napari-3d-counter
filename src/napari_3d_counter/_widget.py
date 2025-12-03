@@ -63,7 +63,7 @@ def get_n3d_counter(viewer: "napari.Viewer") -> "Count3D":
     """
     Gets Count3D if it exists else adds it as a dock widget
     """
-    # napari 0.6.2 only
+    # napari >= 0.6.2 only
     try:
         c3d = next(
             w
