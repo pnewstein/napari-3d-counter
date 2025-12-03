@@ -529,7 +529,6 @@ class Count3D(QWidget):  # pylint: disable=R0902
         _ = kwargs
         python_string = self.config_in_python()
         options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
         file_name, _ = QFileDialog.getSaveFileName(
             self,
             "Save File",
@@ -549,7 +548,6 @@ class Count3D(QWidget):  # pylint: disable=R0902
         _ = kwargs
         data = self.save_points_to_df()
         options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
         file_name, _ = QFileDialog.getSaveFileName(
             self,
             "Save File",
@@ -568,7 +566,6 @@ class Count3D(QWidget):  # pylint: disable=R0902
         _ = args
         _ = kwargs
         options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
         file_name, _ = QFileDialog.getOpenFileName(
             self,
             "Save File",
@@ -919,7 +916,6 @@ class SplitOnShapes(QWidget):
             return
         summary = _create_summary_table(df)
         options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
         file_name, _ = QFileDialog.getSaveFileName(
             self,
             "Save File",
@@ -951,7 +947,6 @@ class SplitOnShapes(QWidget):
         if points_df is None:
             return
         options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
         file_name, _ = QFileDialog.getSaveFileName(
             self,
             "Save File",
