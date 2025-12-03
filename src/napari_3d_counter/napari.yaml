@@ -3,6 +3,9 @@ display_name: 3D Counter
 categories: ["Measurement", "Utilities"]
 contributions:
   commands:
+    - id: napari-3d-counter.read_cells
+      title: Read ".csv" files
+      python_name: napari_3d_counter._reader:get_reader
     - id: napari-3d-counter.make_count3d
       python_name: napari_3d_counter._widget:Count3D
       title: Make widget for counting in 3d
@@ -36,3 +39,8 @@ contributions:
       display_name: Ingress Points
     - command: napari-3d-counter.make_split_on_shapes
       display_name: Split on Shapes
+  readers:
+    - command: napari-3d-counter.read_cells
+      filename_patterns:
+      - '*.csv'
+      accepts_directories: false
