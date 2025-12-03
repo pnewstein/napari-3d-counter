@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 from napari.utils.events import Event
 from napari.utils.color import ColorValue
+from napari.utils.misc import in_ipython
 from napari.qt.threading import create_worker
 from qtpy.QtCore import Qt  # type: ignore
 from qtpy.QtWidgets import (  # pylint: disable=no-name-in-module
@@ -529,6 +530,8 @@ class Count3D(QWidget):  # pylint: disable=R0902
         _ = kwargs
         python_string = self.config_in_python()
         options = QFileDialog.Options()
+        if in_ipython():
+            options |= QFileDialog.DontUseNativeDialog
         file_name, _ = QFileDialog.getSaveFileName(
             self,
             "Save File",
@@ -548,6 +551,8 @@ class Count3D(QWidget):  # pylint: disable=R0902
         _ = kwargs
         data = self.save_points_to_df()
         options = QFileDialog.Options()
+        if in_ipython():
+            options |= QFileDialog.DontUseNativeDialog
         file_name, _ = QFileDialog.getSaveFileName(
             self,
             "Save File",
@@ -566,6 +571,8 @@ class Count3D(QWidget):  # pylint: disable=R0902
         _ = args
         _ = kwargs
         options = QFileDialog.Options()
+        if in_ipython():
+            options |= QFileDialog.DontUseNativeDialog
         file_name, _ = QFileDialog.getOpenFileName(
             self,
             "Save File",
@@ -916,6 +923,8 @@ class SplitOnShapes(QWidget):
             return
         summary = _create_summary_table(df)
         options = QFileDialog.Options()
+        if in_ipython():
+            options |= QFileDialog.DontUseNativeDialog
         file_name, _ = QFileDialog.getSaveFileName(
             self,
             "Save File",
@@ -947,6 +956,8 @@ class SplitOnShapes(QWidget):
         if points_df is None:
             return
         options = QFileDialog.Options()
+        if in_ipython():
+            options |= QFileDialog.DontUseNativeDialog
         file_name, _ = QFileDialog.getSaveFileName(
             self,
             "Save File",
