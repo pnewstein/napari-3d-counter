@@ -42,10 +42,10 @@ from .celltype_config import (
 from .aux_functions import _reconstruct_selected, split_on_shapes
 
 DEFAULT_CONFIG = [
-    CellTypeConfig(keybind="q", name="Cell type 1", color="g"),
-    CellTypeConfig(keybind="w", name="Cell type 2", color="r"),
-    CellTypeConfig(keybind="e", name="Cell type 3", color="c"),
-    CellTypeConfig(keybind="r", name="Cell type 4", color="m"),
+    CellTypeConfig(keybind="q", name="Cell type 1"),
+    CellTypeConfig(keybind="w", name="Cell type 2"),
+    CellTypeConfig(keybind="e", name="Cell type 3"),
+    CellTypeConfig(keybind="r", name="Cell type 4"),
 ]
 
 

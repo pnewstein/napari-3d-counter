@@ -23,14 +23,15 @@ def to_hex(color: np.ndarray) -> str:
 
 
 DEFAULT_KEYMAP_SEQUENCE = ["q", "w", "e", "r", "t", "y", ""]
+# Paul Tol vibrent sequence
 DEFAULT_COLOR_SEQUENCE = [
-    "#ffff00ff",  # y
-    "#ff0000ff",  # r
-    "#00ffffff",  # c
-    "#0000ffff",  # b
-    "#ff00ffff",  # m
-    "#00700090",  # g
-    "#ffffffff",  # w
+    "#ee7733ff",
+    "#0077bbff",
+    "#33bbeeff",
+    "#ee3377ff",
+    "#cc3311ff",
+    "#009988ff",
+    "#ffffffff",
 ]
 DEFAULT_OUTLINE_SIZE = 10
 DEFAULT_OUT_OF_SLICE_SIZE = 2
