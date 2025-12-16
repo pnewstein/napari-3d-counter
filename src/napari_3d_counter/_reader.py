@@ -18,7 +18,6 @@ ReaderFunction = Callable[[PathOrPaths], List[LayerData]]
 
 def get_reader(path: "PathOrPaths") -> Optional["ReaderFunction"]:
     # If we recognize the format, we return the actual reader function
-    print(path)
     if isinstance(path, str) and path.endswith(".csv"):
         with open(path, "r") as file:
             first_line = file.readline()

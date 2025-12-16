@@ -15,6 +15,7 @@ def test_launch_count_3d(make_napari_viewer):
     assert len(df) == 3
 
 
+
 def test_ignores_bad_csv(make_napari_viewer):
     viewer: napari.Viewer = make_napari_viewer()
     with pytest.raises(ValueError):
@@ -25,16 +26,6 @@ def test_ignores_bad_csv(make_napari_viewer):
 def test_chooses_right_viewer_first(make_napari_viewer):
     v1 = make_napari_viewer()
     v2 = make_napari_viewer()
-    napari.current_viewer()
-    from napari._qt.qt_main_window import _QtMainWindow
-
-    viewer_index = next(
-        i
-        for i, w in enumerate(_QtMainWindow._instances)
-        if v1 is w._qt_viewer.viewer
-    )
-    right_window = _QtMainWindow._instances.pop(viewer_index)
-    _QtMainWindow._instances.append(right_window)
     v1.open(HERE / "test_point.csv", plugin="napari-3d-counter")
     c3d1 = get_n3d_counter(v1)
     df1 = c3d1.save_points_to_df()
