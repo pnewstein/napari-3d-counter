@@ -1,9 +1,6 @@
 all: build/napari-3d-counter.html
 	cp build/napari-3d-counter.html ../../pnewstein.github.io
 
-build/%.html: %.md
-	pandoc $< -o $@
-
 build/napari-3d-counter.md: ../README.md make_html.py
 	python make_html.py
 
