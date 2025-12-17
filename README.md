@@ -11,14 +11,16 @@ A plugin for manually counting objects in 3D images
 
 ![small](https://github.com/pnewstein/napari-3d-counter/assets/30813691/9d524c31-f23b-4b34-bcb6-ec3bb415cdae)
 
+Documentation can be found below and at the [this site](https://pnewstein.github.io/napari-3d-counter.html)
+
 ----------------------------------
 
-This [napari] plugin was generated with [Cookiecutter] using [@napari]'s [cookiecutter-napari-plugin] template.
+This [napari](https://github.com/napari/napari) plugin was generated with [Cookiecutter](https://github.com/audreyr/cookiecutter) using @napari's [cookiecutter-napari-plugin](https://github.com/napari/cookiecutter-napari-plugin) template.
 
 ## Prerequisites
 
 It is recommended to use conda to install Napari-3D-Counter and napari.
-Installation instructions for the miniconda distribution of conda can be found here: 
+Installation instructions for the miniconda distribution of conda can be found here:
 
 [https://www.anaconda.com/docs/getting-started/miniconda/install](https://www.anaconda.com/docs/getting-started/miniconda/install)
 
@@ -28,7 +30,7 @@ Installation instructions for the miniconda distribution of conda can be found h
 
 
 You can install `napari-3d-counter` via conda
-    
+
     conda create -n n3dc-env -c conda-forge -y napari napari-3d-counter pyqt python=3.12
     conda activate n3dc-env
 
@@ -37,12 +39,28 @@ pip
 
     pip install napari-3d-counter
 
+<details>
+
+<summary>Troubleshooting</summary>
+
+If above conda and pip installs do not work. follow [the
+instructions](https://napari.org/stable/tutorials/fundamentals/installation.html)
+to get a working napari installation. Then install napari-3d counter into that
+environment:
+
+    conda activate napari-env
+    pip install napari-3d-counter
+
+</details>
 
 ##  Count3D Usage
 
 1. First launch napari with the `napari` command.
 1. Count3D can be launched from the plugin menu of napari, or through the
    command palette (Ctrl+Shift+P). Select Count3D.
+
+> [!TIP]
+> Count can also be launched with `examples/launch_count_3d.py`
 
 This will spawn several [Points Layers](https://napari.org/stable/howtos/layers/points.html):
 
@@ -72,9 +90,18 @@ screen) will be incremented.
 
 <summary>Troubleshooting</summary>
 
+#### No cell was added
+
 - Ensure that `Point adder` layer is selected
 - Ensure that `Add points` tool is selected
+- Ensure that there are no image layers obscuring the layers spawned by napari
 - Click on the viewer where you would like the point to be added
+
+
+#### The cell marker is the wrong size
+
+- See [Change appearance of a cell type](https://github.com/pnewstein/napari-3d-counter#change-appearance-of-a-cell-type)
+- Use the `point size` slider
 
 </details>
 
@@ -85,7 +112,10 @@ https://github.com/pnewstein/napari-3d-counter/assets/30813691/745d495e-1d18-43d
 ### Changing cell type
 
 You can change the currently selected cell type by clicking on that cell type's
-button. This change will be reflected in the GUI. Additionally, the keyboard
+button. This change will be reflected in the the color and text of the first box in the GUI. 
+Now any clicks to the canvas will be added to that type.
+
+Additionally, the keyboard
 shortcut for that cell type can be used. Keyboard shortcuts are listed on the
 button, and are "q", "w", "e", "r", "t", "y" by default
 
@@ -96,7 +126,7 @@ https://github.com/pnewstein/napari-3d-counter/assets/30813691/844d04ce-2795-422
 ### Undo last added cell
 
 The undo button (shortcut u) will remove last added cell, regardless of
-cell type
+cell type. This will change both remove the cell from the canvas and decrease the count in the appropriate type.
 
 
 https://github.com/pnewstein/napari-3d-counter/assets/30813691/c04ca5e3-9f48-4dd5-89e5-a9866b353e03
@@ -105,12 +135,12 @@ https://github.com/pnewstein/napari-3d-counter/assets/30813691/c04ca5e3-9f48-4dd
 ### Remove a particular cell
 
 To remove a particular cell, change to the layer containing the cell you would
-like to remove. Then select the `select points` tool to select the points to
-delete, then use `Delete selected points` to delete those points
+like to remove. Then select the `select points` tool (arrow) to select the points to
+delete, then use `Delete selected points` (x) to delete those points
 
 This change will be reflected in the counts.
 
-> *Important*
+> [!TIP]
 > Ensure that the corect napari cell type layer is selected
 
 
@@ -122,12 +152,13 @@ https://github.com/pnewstein/napari-3d-counter/assets/30813691/d0787cba-9b23-46d
 
 Changes to the name or edge color of a points layer will be reflected in the
 previously added points, as well as the GUI. Features that are editable in this way include:
-    - face color
-    - edge color
-    - symbol
-    - size
 
-> *Important*
+- face color
+- edge color
+- symbol
+- point size
+
+> [!TIP]
 > Ensure that the corect napari cell type layer is selected
 
 https://github.com/pnewstein/napari-3d-counter/assets/30813691/6c495270-d4c4-473e-9091-8d2e0f8e2764
@@ -136,8 +167,9 @@ https://github.com/pnewstein/napari-3d-counter/assets/30813691/6c495270-d4c4-473
 ### Save configuration
 
 Use the `Make launch_cell_count.py` button to create a python script that will
-launch napari with 3DCounter added to the dock and current cell type appearances
-already loaded
+launch napari with 3DCounter added to the dock and with all cell type
+appearances. This functions to save any manual changes you made to the
+appearance of a cell type between sessions.
 
 
 https://github.com/pnewstein/napari-3d-counter/assets/30813691/3448652d-3064-4900-8bbe-e88d75667108
@@ -146,7 +178,7 @@ https://github.com/pnewstein/napari-3d-counter/assets/30813691/3448652d-3064-490
 ### Save cells
 
 Use the "Save cells" button to save the cell coordinates for all layers into a
-csv file
+csv file. This saves the coordinates and the names of each of the cells.
 
 
 https://github.com/pnewstein/napari-3d-counter/assets/30813691/38b30f2a-cc83-46c2-8b19-4d44715c07c5
@@ -158,6 +190,10 @@ Use the "Load cells" button to load the cells from a csv file into new layers
 
 
 https://github.com/pnewstein/napari-3d-counter/assets/30813691/7df74688-85b1-4b61-aa51-dab179763832
+
+> [!TIP]
+> A csv file can be dragged into the viewer to load the cells
+
 
 
 ### Launch with saved configuration
@@ -206,9 +242,10 @@ layer. This can be useful if you want to manually count cells after cell identif
 
 ![Split on Shapes](https://github.com/user-attachments/assets/0d3c12fc-1347-4226-a9b9-9e34dd50577a)
 
-This plugin can be used to subset a cell type into several groups based on their
-x-y location. Simply draw a shape that surrounds your cells (perhaps in a
-segment) and run this plugin to get a list of cells of each type in each shape.
+This plugin can be used to subset a cell type into several groups based on
+their x-y location. Simply draw a shape that surrounds your cells (perhaps in a
+segment of segmentaly repeating tissue) and run this plugin to get a list of
+cells of each type in each shape.
 
 *Usage example can be found in /example/launch_split_on_shapes.py*
 
@@ -229,17 +266,18 @@ which have been counted as a particular cell type.
 
 ## Contributing
 
-Contributions are very welcome. Tests can be run with [tox], please ensure
-the coverage at least stays the same before you submit a pull request.
+Contributions are very welcome. However, code written by LLMs is not welcome.
+Tests can be run with [tox](https://tox.wiki/en/latest/), please ensure the coverage at least stays the same before you submit a pull request.
 
-To contribute, first clone the repository:
+To contribute, first fork and clone the repository on GitHub: 
+(GitHub docs)[https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo]
 
-    git clone https://github.com/pnewstein/napari-3d-counter
 
 Then install localy:
-    
+
     cd napari-3d-counter
     pip install -e '.[testing]'
+
 Run unit tests:
 
     pytest
@@ -248,39 +286,12 @@ Run full test suite, ensuring it installs properly:
 
     tox
 
-## Troubleshooting install
-
-If above conda and pip installs do not work. follow [the
-instructions](https://napari.org/stable/tutorials/fundamentals/installation.html)
-to get a working napari installation. Then install napari-3d counter into that
-environment:
-
-    conda activate napari-env
-    pip install napari-3d-counter
 
 ## License
 
-Distributed under the terms of the [GNU GPL v3.0] license,
+Distributed under the terms of the [GNU GPL v3.0](http://www.gnu.org/licenses/gpl-3.0.txt) license,
 "napari-3d-counter" is free and open source software
 
 ## Issues
 
-If you encounter any problems, please [file an issue] along with a detailed description.
-
-[napari]: https://github.com/napari/napari
-[Cookiecutter]: https://github.com/audreyr/cookiecutter
-[@napari]: https://github.com/napari
-[MIT]: http://opensource.org/licenses/MIT
-[BSD-3]: http://opensource.org/licenses/BSD-3-Clause
-[GNU GPL v3.0]: http://www.gnu.org/licenses/gpl-3.0.txt
-[GNU LGPL v3.0]: http://www.gnu.org/licenses/lgpl-3.0.txt
-[Apache Software License 2.0]: http://www.apache.org/licenses/LICENSE-2.0
-[Mozilla Public License 2.0]: https://www.mozilla.org/media/MPL/2.0/index.txt
-[cookiecutter-napari-plugin]: https://github.com/napari/cookiecutter-napari-plugin
-
-[file an issue]: https://github.com/pnewstein/napari-3d-counter/issues
-
-[napari]: https://github.com/napari/napari
-[tox]: https://tox.readthedocs.io/en/latest/
-[pip]: https://pypi.org/project/pip/
-[PyPI]: https://pypi.org/
+If you encounter any problems, please [file an issue](https://github.com/pnewstein/napari-3d-counter/issues) along with a detailed description.
