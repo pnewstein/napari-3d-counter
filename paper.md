@@ -98,7 +98,6 @@ complex, semi-automated cell counting processes.
 The utility of this plugin is also reflected in its use. It has been used in
 scientific publications [@drakeFer3UniquelyExpressed2025;
 @satoVIIITubulinIdentifies2025] and has over 15,000 downloads on conda-forge.
-This widespread use is likely due to the plugin's ergonomics and stability.
 
 # Acknowledgements
 
