@@ -669,14 +669,14 @@ class ReconstructSelected(QWidget):
         # initialize qt GUI
         self.setLayout(QVBoxLayout())
         points_label = QLabel("Cell type:")
-        points_tool_tip = "The Count3D type to reconstruct"
+        points_tool_tip = "The Count3D type to be used to select labels for reconstruction"
         points_label.setToolTip(points_tool_tip)
         self.layout().addWidget(points_label)
         self.points_box: QComboBox = QComboBox()
         self.points_box.setToolTip(points_tool_tip)
         self.layout().addWidget(self.points_box)
         labels_label = QLabel("Labels:")
-        labels_tool_tip = "The labels layer that serves as the source for selecting layers containing points of the target cell type for reconstruction"
+        labels_tool_tip = "The labels layer that serves as the source for reconstruction: those labels with a cell will be included in the image"
         labels_label.setToolTip(labels_tool_tip)
         self.layout().addWidget(labels_label)
         self.labels_box: QComboBox = QComboBox()

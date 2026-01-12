@@ -88,12 +88,11 @@ of multiple types across a tissue with multiple repeating segments (eg. spinal
 cord), they can use a napari Shapes layer to define all the segments in the X
 and Y axes, and SplitOnShapes will return a count of each cell type within each
 shape. Finally, ReconstructSelected can be used to aid in visualizing cells: if
-a user has a Label layer containing some labels corresponding to cells of
-interest, and other labels not corresponding, perhaps created by automated
-segmentation, ReconstructSelected will convert those labels containing a
-Count3D cell into an image layer, which can then be used to create 2D or 3D
-images. Overall, these auxiliary plugins help to integrate Count3D into more
-complex, semi-automated cell counting processes. 
+a user has a Label layer labeling all cells, but they only want to visualize a
+subset, ReconstructSelected will take those labels containing a Count3D cell
+and create an image layer containing only those cells, which can then be used to
+create 2D or 3D images. Overall, these auxiliary plugins help to integrate
+Count3D into more complex, semi-automated cell counting processes. 
 
 The utility of this plugin is also reflected in its use. It has been used in
 scientific publications [@drakeFer3UniquelyExpressed2025;
