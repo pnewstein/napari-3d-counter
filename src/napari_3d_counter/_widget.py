@@ -943,8 +943,7 @@ class SplitOnShapes(QWidget):
         if self.df is None:
             print('Error: run "Split on Shapes" first')
             return
-        out = pd.DataFrame(self.df[["z", "y", "x"]])
-        out.insert(0, "cell_type", out.index)
+        out = pd.DataFrame(self.df[["cell_type", "z", "y", "x"]])
         out.index = range(len(out))
         return out
 

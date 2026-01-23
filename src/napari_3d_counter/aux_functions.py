@@ -101,8 +101,11 @@ def split_on_shapes(
             out_series.append(
                 pd.Series(
                     {k: point[i] for i, k in enumerate(["z", "y", "x"])}
-                    | {"name": point_layer.name, "shape_idx": shape_idx},
-                    name=f"{point_layer.name}_{shape_idx:03}",
+                    | {
+                        "name": point_layer.name,
+                        "shape_idx": shape_idx,
+                        "cell_type": f"{point_layer.name}_{shape_idx:03}",
+                    }
                 )
             )
     if len(out_series) == 0:
