@@ -847,6 +847,7 @@ class IngressPoints(QWidget):
             ]
         )
         [c3d.pointer.add(c) for c in coordinates]
+        self.run_button.setChecked(False)
 
 
 class SplitOnShapes(QWidget):
