@@ -15,7 +15,6 @@ def test_launch_count_3d(make_napari_viewer):
     assert len(df) == 3
 
 
-
 def test_ignores_bad_csv(make_napari_viewer):
     viewer: napari.Viewer = make_napari_viewer()
     with pytest.raises(ValueError):

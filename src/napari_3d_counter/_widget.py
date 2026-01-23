@@ -669,7 +669,9 @@ class ReconstructSelected(QWidget):
         # initialize qt GUI
         self.setLayout(QVBoxLayout())
         points_label = QLabel("Cell type:")
-        points_tool_tip = "The Count3D type to be used to select labels for reconstruction"
+        points_tool_tip = (
+            "The Count3D type to be used to select labels for reconstruction"
+        )
         points_label.setToolTip(points_tool_tip)
         self.layout().addWidget(points_label)
         self.points_box: QComboBox = QComboBox()
@@ -847,6 +849,7 @@ class IngressPoints(QWidget):
             ]
         )
         [c3d.pointer.add(c) for c in coordinates]
+        self.run_button.setChecked(False)
 
 
 class SplitOnShapes(QWidget):
@@ -942,8 +945,7 @@ class SplitOnShapes(QWidget):
         if self.df is None:
             print('Error: run "Split on Shapes" first')
             return
-        out = pd.DataFrame(self.df[["z", "y", "x"]])
-        out.insert(0, "cell_type", out.index)
+        out = pd.DataFrame(self.df[["cell_type", "z", "y", "x"]])
         out.index = range(len(out))
         return out
 

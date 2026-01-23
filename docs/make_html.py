@@ -5,7 +5,6 @@ This script modifies the README.md to prepare to become html
 import re
 from pathlib import Path
 
-
 tip_html = """
 <div>
 <h4> TIP:</h4>
