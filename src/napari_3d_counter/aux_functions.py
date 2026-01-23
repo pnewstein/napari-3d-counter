@@ -10,6 +10,8 @@ from napari import Viewer
 import numpy as np
 import pandas as pd
 
+from scipy.spatial import Delaunay
+
 
 def _reconstruct_selected(point_layer: Points, labels_layer: Labels) -> dict:
     """
@@ -19,9 +21,9 @@ def _reconstruct_selected(point_layer: Points, labels_layer: Labels) -> dict:
     name = point_layer.name
     coordinates = np.array(
         [
-            np.round(
-                labels_layer.world_to_data(point_layer.data_to_world(d))
-            ).astype(int)
+            np.round(labels_layer.world_to_data(point_layer.data_to_world(d))).astype(
+                int
+            )
             for d in point_layer.data
         ]
     )
@@ -81,6 +83,28 @@ def split_on_shapes(
     if not shapes_layer.data:
         print("No shapes in shapes data")
         return
+    if all(t for t in shapes_layer.shape_type) == "polygon":
+        shapes_2d = [
+            np.stack([shapes_layer.data_to_world(vertix) for vertix in shape])[:, -2:]
+            for shape in shapes_layer.data
+        ]
+        hulls = [Delaunay(points) for points in shapes_2d]
+        out_dfs = list[pd.DataFrame]()
+        for point_layer in point_layers:
+            points_array = np.stack([point_layer.data_to_world(coord) for coord in point_layer.data])[:, -2:]
+            assignments = []
+            for i, hull in enumerate(hulls):
+                assignment = hull.find_simplex(points_array)
+                assignment[assignment != -1] = i
+                assignments.append(assignment)
+            final_assignments = np.stack(assignments).max(axis=0)
+            out_points = point_layer.data[final_assignments > 0]
+            out_df = pd.DataFrame(out_points, columns=["z", "y", "x"])
+            out_df["name"] = point_layer.name
+            out_df["shape_idx"] = final_assignments[final_assignments > 0]
+            out_dfs.append(out_df)
+        return pd.concat(out_dfs)
+
     slice = shapes_layer.data[0][0, :-2]
     out: list[np.ndarray] = []
     for shape in shapes_layer.data:
@@ -97,14 +121,14 @@ def split_on_shapes(
             shape_idx = shapes_layer.get_value(shape_coord, world=True)[0]
             if shape_idx is None:
                 print(f"Point at {point} missing a shape")
-                return
-            out_series.append(
-                pd.Series(
-                    {k: point[i] for i, k in enumerate(["z", "y", "x"])}
-                    | {"name": point_layer.name, "shape_idx": shape_idx},
-                    name=f"{point_layer.name}_{shape_idx:03}",
+            else:
+                out_series.append(
+                    pd.Series(
+                        {k: point[i] for i, k in enumerate(["z", "y", "x"])}
+                        | {"name": point_layer.name, "shape_idx": shape_idx},
+                        name=f"{point_layer.name}_{shape_idx:03}",
+                    )
                 )
-            )
     if len(out_series) == 0:
         print("No points found")
         return
