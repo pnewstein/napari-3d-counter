@@ -12,7 +12,6 @@ from napari_3d_counter import aux_functions
 sys.path.append(str(Path(__file__).parent))
 from test_aux import make_sample_data
 
-
 shapes_data = [
     np.array(
         [

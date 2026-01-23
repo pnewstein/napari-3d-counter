@@ -8,7 +8,6 @@ import numpy as np
 
 from napari.utils.color import ColorValue
 
-
 MatplotlibColor = Union[
     Tuple[float, float, float], Tuple[float, float, float, float], str
 ]

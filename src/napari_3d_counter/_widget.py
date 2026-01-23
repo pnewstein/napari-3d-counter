@@ -669,7 +669,9 @@ class ReconstructSelected(QWidget):
         # initialize qt GUI
         self.setLayout(QVBoxLayout())
         points_label = QLabel("Cell type:")
-        points_tool_tip = "The Count3D type to be used to select labels for reconstruction"
+        points_tool_tip = (
+            "The Count3D type to be used to select labels for reconstruction"
+        )
         points_label.setToolTip(points_tool_tip)
         self.layout().addWidget(points_label)
         self.points_box: QComboBox = QComboBox()

@@ -31,12 +31,16 @@ green_image = place_ball(green_image, (12, 100, 30))
 green_image = place_ball(green_image, (7, 150, 100))
 green_image = place_ball(green_image, (10, 20, 20))
 green_image = gaussian(green_image, sigma=1)
-viewer.add_image(green_image, colormap="green", name="Green", blending="additive")
+viewer.add_image(
+    green_image, colormap="green", name="Green", blending="additive"
+)
 purple_image = np.zeros(shape=(30, 200, 200))
 purple_image = place_ball(purple_image, (8, 60, 35))
 purple_image = place_ball(purple_image, (13, 150, 150))
 purple_image = gaussian(purple_image, sigma=1)
-viewer.add_image(purple_image, colormap="magenta", name="Purple", blending="additive")
+viewer.add_image(
+    purple_image, colormap="magenta", name="Purple", blending="additive"
+)
 
 # Setup the configuration for Count3D
 cell_type_config = [
