@@ -13,7 +13,7 @@ from ._widget import CellTypeConfig, Count3D
 
 PathLike = str
 PathOrPaths = Union[PathLike, Sequence[PathLike]]
-ReaderFunction = Callable[[PathOrPaths], List[LayerData]]
+ReaderFunction = Callable[[PathOrPaths], Sequence[LayerData]]
 
 
 def get_reader(path: "PathOrPaths") -> Optional["ReaderFunction"]:
@@ -21,7 +21,7 @@ def get_reader(path: "PathOrPaths") -> Optional["ReaderFunction"]:
     if isinstance(path, str) and path.endswith(".csv"):
         with open(path, "r") as file:
             first_line = file.readline()
-        if first_line == "cell_type,z,y,x\n":
+        if set(["cell_type", "z", "y", "x"]).issubset(first_line.strip().split(",")):
             return csv_file_reader
     warn(
         "Invalid CSV file. Use one created by the Save Cells button in Count3D"
