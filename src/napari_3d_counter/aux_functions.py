@@ -84,7 +84,7 @@ def split_on_shapes(
     if not shapes_layer.data:
         print("No shapes in shapes data")
         return
-    if all(t for t in shapes_layer.shape_type) == "polygon":
+    if all(t == "polygon" for t in shapes_layer.shape_type):
         shapes_2d = [
             np.stack([shapes_layer.data_to_world(vertix) for vertix in shape])[
                 :, -2:
@@ -106,12 +106,12 @@ def split_on_shapes(
                 assignment[assignment != -1] = i
                 assignments.append(assignment)
             final_assignments = np.stack(assignments).max(axis=0)
-            assigned = final_assignments > 0
+            assigned = final_assignments >= 0
             out_points = point_layer.data[assigned]
             unasigned_points = point_layer.data[~assigned]
             unasigned_df = pd.DataFrame(unasigned_points, columns=["z", "y", "x"])
             if len(unasigned_df) != 0:
-                warn("the following points are unasigned \n{unasigned_df}", UserWarning)
+                warn(f"the following points are unasigned \n{unasigned_df}", UserWarning)
 
             out_df = pd.DataFrame(out_points, columns=["z", "y", "x"])
             out_df["name"] = point_layer.name
