@@ -41,7 +41,7 @@ viewer.add_image(
     purple_image, colormap="magenta", name="Purple", blending="additive"
 )
 # add the shapes. This would likley be done by hand in real usecases
-shapes = viewer.add_shapes()
+shapes = viewer.add_shapes(ndim=3)
 shapes.add_polygons(
     [
         [[14, 14, 11], [14, 123, 28], [14, 45, 107]],

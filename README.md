@@ -1,5 +1,6 @@
 # Napari-3D-Counter
 
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.09091/status.svg)](https://doi.org/10.21105/joss.09091)
 [![License GNU GPL v3.0](https://img.shields.io/pypi/l/napari-3d-counter.svg?color=green)](https://github.com/pnewstein/napari-3d-counter/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/napari-3d-counter.svg?color=green)](https://pypi.org/project/napari-3d-counter)
 [![Python Version](https://img.shields.io/pypi/pyversions/napari-3d-counter.svg?color=green)](https://python.org)
@@ -291,6 +292,11 @@ Run full test suite, ensuring it installs properly:
 
 Distributed under the terms of the [GNU GPL v3.0](http://www.gnu.org/licenses/gpl-3.0.txt) license,
 "napari-3d-counter" is free and open source software
+
+## Citing Napari-3D-Counter
+
+Please cite this JOSS article: https://doi.org/10.21105/joss.09091 
+
 
 ## Issues
 
