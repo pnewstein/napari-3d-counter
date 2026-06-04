@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from typing import List, Optional, Literal
-from threading import Lock
 from typing import TYPE_CHECKING, Any
 import warnings
 
@@ -41,6 +40,20 @@ from .celltype_config import (
     to_hex,
 )
 from .aux_functions import _reconstruct_selected, split_on_shapes
+
+
+# dummy lock class that does nothing. Check if we have test coverage
+class Lock:
+
+    def locked(self):
+        return False
+
+    def acquire(self, blocking=False):
+        pass
+
+    def release(self):
+        pass
+
 
 DEFAULT_CONFIG = [
     CellTypeConfig(keybind="q", name="Cell type 1"),
