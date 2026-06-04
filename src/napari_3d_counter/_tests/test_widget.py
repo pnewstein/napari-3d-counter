@@ -86,6 +86,8 @@ def test_add_point(make_napari_viewer):
     default_celltype = my_widget.cell_type_gui_and_data[0]
     event.value = [np.array([1, 1, 1])]
     my_widget.new_pointer_point(event)
+    # check that out of slice was added
+    assert len(my_widget.out_of_slice_points.data) == 1
     print(default_celltype.layer.data.shape)
     assert default_celltype.layer.data.shape == (1, 3)
     event.value = [np.array([2, 2, 2])]
