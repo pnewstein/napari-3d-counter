@@ -319,6 +319,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
             self.update_out_of_slice()
             return
         # figure out current cell type
+        self.update_out_of_slice()
         current_points = event.source
         current_cell_type = next(
             cell_type

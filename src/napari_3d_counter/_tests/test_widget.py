@@ -116,6 +116,21 @@ def test_keybind_conflict(make_napari_viewer):
     my_widget = Count3D(viewer, cell_type_config=config)
     viewer.window.add_dock_widget(my_widget)
 
+def test_manual_delete(make_napari_viewer):
+    viewer = make_napari_viewer()
+    viewer.add_image(np.random.random((100, 100, 100)))
+    my_widget = Count3D(viewer)
+    event = Event()
+    event.value = [np.array([1, 1, 1])]
+    my_widget.new_pointer_point(event)
+    assert len(my_widget.out_of_slice_points.data) == 1
+    my_widget.cell_type_gui_and_data[0].layer.data = []
+    assert len(my_widget.out_of_slice_points.data) == 0
+
+
+
+
+
 
 def test_undo(make_napari_viewer):
     # make viewer and add an image layer using our fixture
