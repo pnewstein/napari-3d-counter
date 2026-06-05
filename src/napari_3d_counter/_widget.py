@@ -5,8 +5,7 @@ implements the counting interface and the reconstruction plugin
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import List, Optional, Literal
-from threading import Lock
+from typing import List, Optional, Literal, Callable
 from typing import TYPE_CHECKING, Any
 import warnings
 
@@ -16,7 +15,7 @@ from napari.layers import Points, Labels, Image, Shapes
 from napari.utils._proxies import PublicOnlyProxy
 import numpy as np
 import pandas as pd
-from napari.utils.events import Event
+from napari.utils.events import Event, EmitterGroup
 from napari.utils.color import ColorValue
 from napari.utils.misc import in_ipython
 from napari.qt.threading import create_worker
@@ -41,6 +40,7 @@ from .celltype_config import (
     to_hex,
 )
 from .aux_functions import _reconstruct_selected, split_on_shapes
+
 
 DEFAULT_CONFIG = [
     CellTypeConfig(keybind="q", name="Cell type 1"),
@@ -135,15 +135,11 @@ class CellTypeGuiAndData:
     keybind: str
     button: QPushButton
     layer: Points
-    gui_lock: Lock
 
     def update_button_gui(self):
         """
         Updates the button with current name, and number of cells
         """
-        # do nothing if gui_lock is locked
-        if self.gui_lock.locked():
-            return
         # update the button
         keybind_str = f" ({self.keybind})" if self.keybind else ""
         button_text = (
@@ -235,12 +231,12 @@ class Count3D(QWidget):  # pylint: disable=R0902
         # a stack containing points with added layers
         self.undo_stack: List[CellTypeGuiAndData] = []
         # prevents unwanted animations
-        self.gui_lock = Lock()
         # add out of slice markers
         self.out_of_slice_points = self.viewer.add_points(
             ndim=2,
             size=self.initial_config[0].out_of_slice_point_size,
             name="out of slice",
+            metadata={"Napari-3D-Counter": True},
         )
 
         def update_out_of_slice_size():
@@ -261,6 +257,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
             ndim=3,
             name="Point adder",
             size=cell_type_config[0].out_of_slice_point_size,
+            metadata={"Napari-3D-Counter": True},
         )
         self.pointer.mode = "add"
         # make new_pointer_point run each time data is changed
@@ -317,18 +314,12 @@ class Count3D(QWidget):  # pylint: disable=R0902
         """
         Handle adding point specific to the layer
         """
-        # try:
-        # event.value[0]
-        # except IndexError:
-        # # received an empty event
-        # return
-        if self.gui_lock.locked():
-            return
         if event.action == "added":
+            # add to out_of_slice_points
+            self.update_out_of_slice()
             return
-        # add to out_of_slice_points
-        self.update_out_of_slice()
         # figure out current cell type
+        self.update_out_of_slice()
         current_points = event.source
         current_cell_type = next(
             cell_type
@@ -347,12 +338,9 @@ class Count3D(QWidget):  # pylint: disable=R0902
         """
         if event.action == "adding":
             return
-        if self.gui_lock.locked():
-            return
         pointer_coords = event.value
-        assert self.gui_lock.acquire(blocking=False)
-        self.pointer.data = np.array([])
-        self.gui_lock.release()
+        with self.pointer.events.data.blocker():
+            self.pointer.data = np.array([])
         if self.viewer.dims.ndisplay == 3:
             warnings.warn("Napari3DCounter only works in 2D mode", UserWarning)
             return
@@ -361,14 +349,8 @@ class Count3D(QWidget):  # pylint: disable=R0902
         # implicitly calls self.handle_data_changed
         current_point_layer = current_cell_type.layer
         current_point_layer.add(coords=pointer_coords)
-        # hack to unselect last added point
-        # prevent layer specific handlers from updating
-        # add and remove point
-        assert self.gui_lock.acquire(blocking=False)
-        current_point_layer.add(coords=pointer_coords)
-        current_point_layer.remove_selected()
-        self.gui_lock.release()
-        self.update_out_of_slice()
+        # unselect last added point
+        current_point_layer.selected_data = []
 
     def update_gui(self):
         """
@@ -397,6 +379,7 @@ class Count3D(QWidget):  # pylint: disable=R0902
             symbol=config.symbol,
             face_color=config.face_color,
             border_width=config.edge_width,
+            metadata={"Napari-3D-Counter": True},
         )
         point_layer.events.data.connect(self.handle_data_changed)
         btn = QPushButton()
@@ -404,7 +387,6 @@ class Count3D(QWidget):  # pylint: disable=R0902
             keybind=config.keybind,
             button=btn,
             layer=point_layer,
-            gui_lock=self.gui_lock,
         )
         # set up event handler that changes state to this
         change_state_fun = NamedPartial(
@@ -489,9 +471,8 @@ class Count3D(QWidget):  # pylint: disable=R0902
             return
         cell_type = self.undo_stack.pop()
         point_layer = cell_type.layer
-        assert self.gui_lock.acquire(blocking=True)
-        point_layer.data = point_layer.data[:-1]
-        self.gui_lock.release()
+        with point_layer.events.data.blocker():
+            point_layer.data = point_layer.data[:-1]
         self.update_out_of_slice()
         # update button
         cell_type.update_button_gui()
@@ -654,6 +635,13 @@ def reset_box(box: QComboBox, values: list[str]):
     if old_value in values:
         box.setCurrentText(old_value)
 
+def _add_reset_boxes_callback(events: EmitterGroup, reset_boxes: Callable):
+    """
+    adds all the proper callbacks where the reset box might want to change
+    """
+    events.inserted.connect(reset_boxes)
+    events.removed.connect(reset_boxes)
+    events.renamed.connect(reset_boxes)
 
 class ReconstructSelected(QWidget):
     """
@@ -687,10 +675,8 @@ class ReconstructSelected(QWidget):
         self.run_button = QPushButton("Reconstruct Selected")
         self.run_button.clicked.connect(self.run)
         self.layout().addWidget(self.run_button)
-        self.resetting_lock = Lock()
         # viewer callbacks
-        napari_viewer.layers.events.inserted.connect(self.reset_boxes)
-        napari_viewer.layers.events.removed.connect(self.reset_boxes)
+        _add_reset_boxes_callback(napari_viewer.layers.events, self.reset_boxes)
         self.reset_boxes(None)
         self.output_layer: Image | None = None
 
@@ -699,12 +685,10 @@ class ReconstructSelected(QWidget):
         A callback when the layers are changed. make sure that all of the boxes
         have valid layer names and that the run button is only enabled
         """
-        _ = event
-        if self.resetting_lock.locked():
-            return
-        assert self.resetting_lock.acquire(blocking=False)
+        if event is not None:
+            if "Napari-3D-Counter" in event.value.metadata:
+                return
         c3d = get_n3d_counter(self.viewer)
-        self.resetting_lock.release()
         reset_box(
             self.points_box,
             [l.layer.name for l in c3d.cell_type_gui_and_data],
@@ -784,10 +768,8 @@ class IngressPoints(QWidget):
         # needed to keep it pushed while long running task runs in worker thread
         self.run_button.setCheckable(True)
         self.layout().addWidget(self.run_button)
-        self.resetting_lock = Lock()
         # viewer callbacks
-        napari_viewer.layers.events.inserted.connect(self.reset_boxes)
-        napari_viewer.layers.events.removed.connect(self.reset_boxes)
+        _add_reset_boxes_callback(napari_viewer.layers.events, self.reset_boxes)
         self.reset_boxes(None)
 
     def reset_boxes(self, event):
@@ -795,12 +777,10 @@ class IngressPoints(QWidget):
         A callback when the layers are changed. make sure that all of the boxes
         have valid layer names and that the run button is only enabled
         """
-        _ = event
-        if self.resetting_lock.locked():
-            return
-        assert self.resetting_lock.acquire(blocking=False)
+        if event is not None:
+            if "Napari-3D-Counter" in event.value.metadata:
+                return
         c3d = get_n3d_counter(self.viewer)
-        self.resetting_lock.release()
         possible_celltype_boxes = [
             l.layer.name for l in c3d.cell_type_gui_and_data
         ]
@@ -889,11 +869,9 @@ class SplitOnShapes(QWidget):
         save_points.clicked.connect(self.save_points)
         row_layout.addWidget(save_points)
         self.layout().addLayout(row_layout)
-        self.resetting_lock = Lock()
         self.df: pd.DataFrame | None = None
         # viewer callbacks
-        napari_viewer.layers.events.inserted.connect(self.reset_boxes)
-        napari_viewer.layers.events.removed.connect(self.reset_boxes)
+        _add_reset_boxes_callback(napari_viewer.layers.events, self.reset_boxes)
         self.reset_boxes(None)
         self.update_table(None)
 
@@ -903,14 +881,11 @@ class SplitOnShapes(QWidget):
         have valid layer names and that the run button is only enabled
         """
         _ = event
-        if self.resetting_lock.locked():
-            return
-        assert self.resetting_lock.acquire(blocking=False)
+
         reset_box(
             self.shapes_box,
             [l.name for l in self.viewer.layers if isinstance(l, Shapes)],
         )
-        self.resetting_lock.release()
         if self.shapes_box.currentText():
             self.run_button.setDisabled(False)
         else:
