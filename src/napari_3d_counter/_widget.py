@@ -5,7 +5,7 @@ implements the counting interface and the reconstruction plugin
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Callable
 from typing import TYPE_CHECKING, Any
 import warnings
 
@@ -15,7 +15,7 @@ from napari.layers import Points, Labels, Image, Shapes
 from napari.utils._proxies import PublicOnlyProxy
 import numpy as np
 import pandas as pd
-from napari.utils.events import Event
+from napari.utils.events import Event, EmitterGroup
 from napari.utils.color import ColorValue
 from napari.utils.misc import in_ipython
 from napari.qt.threading import create_worker
@@ -634,6 +634,13 @@ def reset_box(box: QComboBox, values: list[str]):
     if old_value in values:
         box.setCurrentText(old_value)
 
+def _add_reset_boxes_callback(events: EmitterGroup, reset_boxes: Callable):
+    """
+    adds all the proper callbacks where the reset box might want to change
+    """
+    events.inserted.connect(reset_boxes)
+    events.removed.connect(reset_boxes)
+    events.renamed.connect(reset_boxes)
 
 class ReconstructSelected(QWidget):
     """
@@ -668,8 +675,7 @@ class ReconstructSelected(QWidget):
         self.run_button.clicked.connect(self.run)
         self.layout().addWidget(self.run_button)
         # viewer callbacks
-        napari_viewer.layers.events.inserted.connect(self.reset_boxes)
-        napari_viewer.layers.events.removed.connect(self.reset_boxes)
+        _add_reset_boxes_callback(napari_viewer.layers.events, self.reset_boxes)
         self.reset_boxes(None)
         self.output_layer: Image | None = None
 
@@ -762,8 +768,7 @@ class IngressPoints(QWidget):
         self.run_button.setCheckable(True)
         self.layout().addWidget(self.run_button)
         # viewer callbacks
-        napari_viewer.layers.events.inserted.connect(self.reset_boxes)
-        napari_viewer.layers.events.removed.connect(self.reset_boxes)
+        _add_reset_boxes_callback(napari_viewer.layers.events, self.reset_boxes)
         self.reset_boxes(None)
 
     def reset_boxes(self, event):
@@ -865,8 +870,7 @@ class SplitOnShapes(QWidget):
         self.layout().addLayout(row_layout)
         self.df: pd.DataFrame | None = None
         # viewer callbacks
-        napari_viewer.layers.events.inserted.connect(self.reset_boxes)
-        napari_viewer.layers.events.removed.connect(self.reset_boxes)
+        _add_reset_boxes_callback(napari_viewer.layers.events, self.reset_boxes)
         self.reset_boxes(None)
         self.update_table(None)
 
