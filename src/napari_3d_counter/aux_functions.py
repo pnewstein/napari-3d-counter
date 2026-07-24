@@ -94,6 +94,8 @@ def split_on_shapes(
         hulls = [Delaunay(points) for points in shapes_2d]
         out_dfs = list[pd.DataFrame]()
         for point_layer in point_layers:
+            if len(point_layer.data) == 0:
+                continue
             points_array = np.stack(
                 [
                     point_layer.data_to_world(coord)
