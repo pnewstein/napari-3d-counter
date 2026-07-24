@@ -1,5 +1,5 @@
 """
-implements the counting interface and the reconstruction plugin
+implements the all of the widgets
 """
 
 from dataclasses import dataclass
