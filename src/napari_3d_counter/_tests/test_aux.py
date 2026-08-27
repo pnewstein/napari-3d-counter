@@ -7,7 +7,7 @@ from typing import List, Tuple
 
 from pytestqt import qtbot
 import numpy as np
-from skimage.morphology import ball, binary_dilation
+from skimage.morphology import ball, dilation
 from io import StringIO
 
 import pytest
@@ -79,7 +79,7 @@ def test_reconstruct_selected_empty(make_napari_viewer, qtbot):
     scaled.data[
         tuple(scaled.world_to_data(click_world_coords).astype(int))
     ] = 2
-    scaled.data = binary_dilation(scaled.data)
+    scaled.data = dilation(scaled.data)
     assert scaled.get_value(click_world_coords, world=True) != 0
     rs.output_layer = None
     rs.points_box.setCurrentText("Cell type 1")
