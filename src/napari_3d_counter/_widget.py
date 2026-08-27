@@ -228,9 +228,12 @@ class Count3D(QWidget):  # pylint: disable=R0902
         """initial because it doesn't take into account gui changes"""
         # viewer is needed to add layers
         self.viewer = napari_viewer
+        # we need to set all layers projection mode to none in napari 0.9.0
+        # see https://github.com/napari/napari/issues/9449
+        for layer in self.viewer.layers:
+            layer.projection_mode = "none"
         # a stack containing points with added layers
         self.undo_stack: List[CellTypeGuiAndData] = []
-        # prevents unwanted animations
         # add out of slice markers
         self.out_of_slice_points = self.viewer.add_points(
             ndim=2,
@@ -375,7 +378,9 @@ class Count3D(QWidget):  # pylint: disable=R0902
             name=config.name,
             border_color=config.color,
             size=config.outline_size,
-            out_of_slice_display=True,
+            # see https://github.com/napari/napari/issues/9449
+            # out_of_slice_display=True,
+            projection_mode="rescale_linear",
             symbol=config.symbol,
             face_color=config.face_color,
             border_width=config.edge_width,
@@ -409,27 +414,21 @@ class Count3D(QWidget):  # pylint: disable=R0902
         point_layer.events.current_face_color.connect(
             partial(out.update_attr, "face_color")
         )
-        point_layer.events.current_size.connect(
-            partial(out.update_attr, "size")
-        )
+        # point_layer.events.current_size.connect(
+        #     partial(out.update_attr, "size")
+        # )
         point_layer.events.current_symbol.connect(
             partial(out.update_attr, "symbol")
         )
         point_layer.events.current_border_width.connect(
             partial(out.update_attr, "border_width")
         )
-
-        def update_symbol():
-            if napari.__version__.split(".")[:3] == ["0", "4", "19"]:
-                # see https://github.com/napari/napari/issues/6865
-                print(
-                    "Updating exising symbols is not supported in napari 0.4.19\n"
-                    "This feature is availible in napari 0.4.18"
-                )
-            else:
-                out.update_attr("symbol")
-
-        point_layer.events.current_symbol.connect(update_symbol)
+        # see https://github.com/napari/napari/issues/9449
+        def update_size():
+            if out.layer.current_size > self.viewer.dims.thickness[0]:
+                self.viewer.dims.thickness = (out.layer.current_size,) * 3
+            out.update_attr("size")
+        point_layer.events.current_size.connect(update_size)
         return out
 
     def change_state_to(self, state: CellTypeGuiAndData, *args, **kwargs):

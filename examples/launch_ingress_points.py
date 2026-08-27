@@ -61,7 +61,7 @@ viewer.window.add_dock_widget(IngressPoints(viewer))
 # Do some analysis to find the cells automaticaly
 points = blob_dog(green_image, 2, 3)
 # Add those points to the viewer
-viewer.add_points(points[:, :3], out_of_slice_display=True)
+viewer.add_points(points[:, :3], projection_mode="rescale_linear")
 
 # Now Ingress Points button is ready to click
 
