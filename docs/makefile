@@ -1,5 +1,6 @@
 all: build/napari-3d-counter.html
 	cp build/napari-3d-counter.html ../../pnewstein.github.io
+	cp build/napari-3d-counter.html ../../pnewstein.net/index.html
 
 build/napari-3d-counter.md: ../README.md make_html.py
 	python make_html.py
