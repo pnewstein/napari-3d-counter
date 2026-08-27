@@ -230,7 +230,6 @@ class Count3D(QWidget):  # pylint: disable=R0902
         self.viewer = napari_viewer
         # a stack containing points with added layers
         self.undo_stack: List[CellTypeGuiAndData] = []
-        # prevents unwanted animations
         # add out of slice markers
         self.out_of_slice_points = self.viewer.add_points(
             ndim=2,
