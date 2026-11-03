@@ -4,11 +4,14 @@ These functions are also used in the aux widgets
 """
 
 from typing import TYPE_CHECKING
+from warnings import warn
 
 from napari.layers import Points, Labels, Image, Shapes
 from napari import Viewer
 import numpy as np
 import pandas as pd
+
+from scipy.spatial import Delaunay
 
 
 def _reconstruct_selected(point_layer: Points, labels_layer: Labels) -> dict:
@@ -81,6 +84,47 @@ def split_on_shapes(
     if not shapes_layer.data:
         print("No shapes in shapes data")
         return
+    if all(t == "polygon" for t in shapes_layer.shape_type):
+        shapes_2d = [
+            np.stack([shapes_layer.data_to_world(vertix) for vertix in shape])[
+                :, -2:
+            ]
+            for shape in shapes_layer.data
+        ]
+        hulls = [Delaunay(points) for points in shapes_2d]
+        out_dfs = list[pd.DataFrame]()
+        for point_layer in point_layers:
+            if len(point_layer.data) == 0:
+                continue
+            points_array = np.stack(
+                [
+                    point_layer.data_to_world(coord)
+                    for coord in point_layer.data
+                ]
+            )[:, -2:]
+            assignments = []
+            for i, hull in enumerate(hulls):
+                assignment = hull.find_simplex(points_array)
+                assignment[assignment != -1] = i
+                assignments.append(assignment)
+            final_assignments = np.stack(assignments).max(axis=0)
+            assigned = final_assignments >= 0
+            out_points = point_layer.data[assigned]
+            unasigned_points = point_layer.data[~assigned]
+            unasigned_df = pd.DataFrame(unasigned_points, columns=["z", "y", "x"])
+            if len(unasigned_df) != 0:
+                warn(f"the following points are unasigned \n{unasigned_df}", UserWarning)
+
+            out_df = pd.DataFrame(out_points, columns=["z", "y", "x"])
+            out_df["name"] = point_layer.name
+            out_df["shape_idx"] = final_assignments[assigned]
+            out_df["cell_type"] = [
+                f"{point_layer.name}_{shape_idx:03}"
+                for shape_idx in out_df["shape_idx"]
+            ]
+            out_dfs.append(out_df)
+        return pd.concat(out_dfs)
+
     slice = shapes_layer.data[0][0, :-2]
     out: list[np.ndarray] = []
     for shape in shapes_layer.data:
@@ -96,18 +140,18 @@ def split_on_shapes(
             shape_coord = tuple(list(slice) + list(world_point[-2:]))
             shape_idx = shapes_layer.get_value(shape_coord, world=True)[0]
             if shape_idx is None:
-                print(f"Point at {point} missing a shape")
-                return
-            out_series.append(
-                pd.Series(
-                    {k: point[i] for i, k in enumerate(["z", "y", "x"])}
-                    | {
-                        "name": point_layer.name,
-                        "shape_idx": shape_idx,
-                        "cell_type": f"{point_layer.name}_{shape_idx:03}",
-                    }
+                warn(f"Point at {point} missing a shape", UserWarning)
+            else:
+                out_series.append(
+                    pd.Series(
+                        {k: point[i] for i, k in enumerate(["z", "y", "x"])}
+                        | {
+                            "name": point_layer.name,
+                            "shape_idx": shape_idx,
+                            "cell_type": f"{point_layer.name}_{shape_idx:03}",
+                        }
+                    )
                 )
-            )
     if len(out_series) == 0:
         print("No points found")
         return

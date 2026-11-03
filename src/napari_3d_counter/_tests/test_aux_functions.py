@@ -111,4 +111,6 @@ def test_split_on_shapes(make_napari_viewer):
     assert df is not None
     p_layer = viewer.add_points([[0, 0, 100]])
     df = aux_functions.split_on_shapes([p_layer], s_layer)
-    assert df is None
+    assert df is None or len(df) == 0;
+    p2 = viewer.add_points()
+    df = aux_functions.split_on_shapes([p_layer, p2], s_layer)
